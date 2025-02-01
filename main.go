@@ -5,8 +5,11 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v3"
 	"github.com/ngdangkietswe/swe-go-common-shared/config"
-	commonlogger "github.com/ngdangkietswe/swe-go-common-shared/logger"
-	"go.uber.org/zap"
+	"github.com/ngdangkietswe/swe-integration-service/data/repository"
+	"github.com/ngdangkietswe/swe-integration-service/grpc"
+	"github.com/ngdangkietswe/swe-integration-service/logger"
+	"go.uber.org/fx"
+	grpcserver "google.golang.org/grpc"
 )
 
 type StravaConfig struct {
@@ -19,33 +22,42 @@ type StravaConfig struct {
 var stravaConfig StravaConfig
 
 // logger is a global variable that holds the logger instance.
-var logger, _ = commonlogger.NewLogger(
-	"swe-integration-service",
-	"local",
-	"debug",
-	"",
-)
+//var logger, _ = commonlogger.NewLogger(
+//	"swe-integration-service",
+//	"local",
+//	"debug",
+//	"",
+//)
 
 func main() {
 	config.Init()
 
-	stravaConfig = StravaConfig{
-		ClientID:     config.GetString("STRAVA_CLIENT_ID", ""),
-		ClientSecret: config.GetString("STRAVA_CLIENT_SECRET", ""),
-		RedirectURI:  config.GetString("STRAVA_REDIRECT_URI", ""),
-	}
+	app := fx.New(
+		logger.Module,
+		repository.Module,
+		grpc.Module,
+		fx.Invoke(func(*grpcserver.Server) {}),
+	)
+	app.Run()
 
-	app := fiber.New()
-
-	app.Get("/strava/auth", StravaAuthHandler)
-	app.Get("/strava/callback", StravaCallbackHandler)
-	app.Get("/strava/activities", GetActivitiesHandler)
-
-	err := app.Listen(":8080")
-	if err != nil {
-		logger.Error("Failed to start the server", zap.String("error", err.Error()))
-		return
-	}
+	//
+	//stravaConfig = StravaConfig{
+	//	ClientID:     config.GetString("STRAVA_CLIENT_ID", ""),
+	//	ClientSecret: config.GetString("STRAVA_CLIENT_SECRET", ""),
+	//	RedirectURI:  config.GetString("STRAVA_REDIRECT_URI", ""),
+	//}
+	//
+	//app := fiber.New()
+	//
+	//app.Get("/strava/auth", StravaAuthHandler)
+	//app.Get("/strava/callback", StravaCallbackHandler)
+	//app.Get("/strava/activities", GetActivitiesHandler)
+	//
+	//err := app.Listen(":8080")
+	//if err != nil {
+	//	logger.Error("Failed to start the server", zap.String("error", err.Error()))
+	//	return
+	//}
 }
 
 // StravaAuthHandler - Redirect to Strava for authentication
@@ -55,7 +67,7 @@ func StravaAuthHandler(ctx fiber.Ctx) error {
 		stravaConfig.ClientID,
 		stravaConfig.RedirectURI,
 	)
-	logger.Info("Redirecting to Strava for authentication", zap.String("authURL", authURL))
+	//logger.Info("Redirecting to Strava for authentication", zap.String("authURL", authURL))
 
 	ctx.Response().Header.Set("Location", authURL)
 	ctx.Status(fiber.StatusTemporaryRedirect)
@@ -89,7 +101,12 @@ func StravaCallbackHandler(c fiber.Ctx) error {
 
 	// Retrieve and display the access token
 	token := response["access_token"].(string)
-	logger.Info("Received access token from Strava", zap.String("accessToken", token))
+	//refreshToken := response["refresh_token"].(string)
+	//athlete := response["athlete"].(map[string]interface{})
+	//
+	//logger.Info("Received access token from Strava", zap.String("accessToken", token))
+	//logger.Info("Received refresh token from Strava", zap.String("refreshToken", refreshToken))
+	//logger.Info("Received athlete info from Strava", zap.Any("athlete", athlete))
 
 	return c.SendString("Authentication successful! Access Token: " + token)
 }
