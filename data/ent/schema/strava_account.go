@@ -4,9 +4,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/ngdangkietswe/swe-go-common-shared/util"
 	"time"
 )
 
@@ -36,11 +36,7 @@ func (StravaAccount) Fields() []ent.Field {
 // Edges of the StravaAccount.
 func (StravaAccount) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("cdc_auth_users", CdcAuthUsers.Type).
-			Ref("strava_accounts").
-			Unique().
-			Required().
-			Field("user_id"),
+		util.One2ManyInverseRequired("cdc_auth_users", CdcAuthUsers.Type, "strava_accounts", "user_id"),
 	}
 }
 

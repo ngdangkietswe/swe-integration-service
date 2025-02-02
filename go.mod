@@ -10,8 +10,8 @@ require (
 	github.com/gofiber/fiber/v3 v3.0.0-beta.4
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
-	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250201080741-ceed20045b39
-	github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250201065633-5c05f90011c4
+	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250202110419-e22bc426f90b
+	github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250201174857-b792276f64e2
 	go.uber.org/fx v1.23.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.68.0

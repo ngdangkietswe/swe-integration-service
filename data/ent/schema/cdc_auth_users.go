@@ -4,9 +4,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/ngdangkietswe/swe-go-common-shared/util"
 )
 
 // CdcAuthUsers holds the schema definition for the CdcAuthUsers entity.
@@ -26,7 +26,7 @@ func (CdcAuthUsers) Fields() []ent.Field {
 // Edges of the CdcAuthUsers.
 func (CdcAuthUsers) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("strava_accounts", StravaAccount.Type),
+		util.One2Many("strava_accounts", StravaAccount.Type),
 	}
 }
 
