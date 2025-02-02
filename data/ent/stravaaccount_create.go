@@ -118,19 +118,15 @@ func (sac *StravaAccountCreate) SetNillableID(u *uuid.UUID) *StravaAccountCreate
 	return sac
 }
 
-// AddCdcAuthUserIDs adds the "cdc_auth_users" edge to the CdcAuthUsers entity by IDs.
-func (sac *StravaAccountCreate) AddCdcAuthUserIDs(ids ...uuid.UUID) *StravaAccountCreate {
-	sac.mutation.AddCdcAuthUserIDs(ids...)
+// SetCdcAuthUsersID sets the "cdc_auth_users" edge to the CdcAuthUsers entity by ID.
+func (sac *StravaAccountCreate) SetCdcAuthUsersID(id uuid.UUID) *StravaAccountCreate {
+	sac.mutation.SetCdcAuthUsersID(id)
 	return sac
 }
 
-// AddCdcAuthUsers adds the "cdc_auth_users" edges to the CdcAuthUsers entity.
-func (sac *StravaAccountCreate) AddCdcAuthUsers(c ...*CdcAuthUsers) *StravaAccountCreate {
-	ids := make([]uuid.UUID, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return sac.AddCdcAuthUserIDs(ids...)
+// SetCdcAuthUsers sets the "cdc_auth_users" edge to the CdcAuthUsers entity.
+func (sac *StravaAccountCreate) SetCdcAuthUsers(c *CdcAuthUsers) *StravaAccountCreate {
+	return sac.SetCdcAuthUsersID(c.ID)
 }
 
 // Mutation returns the StravaAccountMutation object of the builder.
@@ -247,6 +243,9 @@ func (sac *StravaAccountCreate) check() error {
 	if _, ok := sac.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "StravaAccount.updated_at"`)}
 	}
+	if len(sac.mutation.CdcAuthUsersIDs()) == 0 {
+		return &ValidationError{Name: "cdc_auth_users", err: errors.New(`ent: missing required edge "StravaAccount.cdc_auth_users"`)}
+	}
 	return nil
 }
 
@@ -281,10 +280,6 @@ func (sac *StravaAccountCreate) createSpec() (*StravaAccount, *sqlgraph.CreateSp
 	if id, ok := sac.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
-	}
-	if value, ok := sac.mutation.UserID(); ok {
-		_spec.SetField(stravaaccount.FieldUserID, field.TypeUUID, value)
-		_node.UserID = value
 	}
 	if value, ok := sac.mutation.AthleteID(); ok {
 		_spec.SetField(stravaaccount.FieldAthleteID, field.TypeInt64, value)
@@ -328,10 +323,10 @@ func (sac *StravaAccountCreate) createSpec() (*StravaAccount, *sqlgraph.CreateSp
 	}
 	if nodes := sac.mutation.CdcAuthUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   stravaaccount.CdcAuthUsersTable,
-			Columns: stravaaccount.CdcAuthUsersPrimaryKey,
+			Columns: []string{stravaaccount.CdcAuthUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cdcauthusers.FieldID, field.TypeUUID),
@@ -340,6 +335,7 @@ func (sac *StravaAccountCreate) createSpec() (*StravaAccount, *sqlgraph.CreateSp
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

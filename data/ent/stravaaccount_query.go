@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -76,7 +75,7 @@ func (saq *StravaAccountQuery) QueryCdcAuthUsers() *CdcAuthUsersQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(stravaaccount.Table, stravaaccount.FieldID, selector),
 			sqlgraph.To(cdcauthusers.Table, cdcauthusers.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, stravaaccount.CdcAuthUsersTable, stravaaccount.CdcAuthUsersPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, stravaaccount.CdcAuthUsersTable, stravaaccount.CdcAuthUsersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(saq.driver.Dialect(), step)
 		return fromU, nil
@@ -395,9 +394,8 @@ func (saq *StravaAccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		return nodes, nil
 	}
 	if query := saq.withCdcAuthUsers; query != nil {
-		if err := saq.loadCdcAuthUsers(ctx, query, nodes,
-			func(n *StravaAccount) { n.Edges.CdcAuthUsers = []*CdcAuthUsers{} },
-			func(n *StravaAccount, e *CdcAuthUsers) { n.Edges.CdcAuthUsers = append(n.Edges.CdcAuthUsers, e) }); err != nil {
+		if err := saq.loadCdcAuthUsers(ctx, query, nodes, nil,
+			func(n *StravaAccount, e *CdcAuthUsers) { n.Edges.CdcAuthUsers = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -405,62 +403,30 @@ func (saq *StravaAccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 }
 
 func (saq *StravaAccountQuery) loadCdcAuthUsers(ctx context.Context, query *CdcAuthUsersQuery, nodes []*StravaAccount, init func(*StravaAccount), assign func(*StravaAccount, *CdcAuthUsers)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[uuid.UUID]*StravaAccount)
-	nids := make(map[uuid.UUID]map[*StravaAccount]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*StravaAccount)
+	for i := range nodes {
+		fk := nodes[i].UserID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
 		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(stravaaccount.CdcAuthUsersTable)
-		s.Join(joinT).On(s.C(cdcauthusers.FieldID), joinT.C(stravaaccount.CdcAuthUsersPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(stravaaccount.CdcAuthUsersPrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(stravaaccount.CdcAuthUsersPrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(uuid.UUID)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := *values[0].(*uuid.UUID)
-				inValue := *values[1].(*uuid.UUID)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*StravaAccount]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*CdcAuthUsers](ctx, query, qr, query.inters)
+	query.Where(cdcauthusers.IDIn(ids...))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "cdc_auth_users" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil
@@ -490,6 +456,9 @@ func (saq *StravaAccountQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != stravaaccount.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if saq.withCdcAuthUsers != nil {
+			_spec.Node.AddColumnOnce(stravaaccount.FieldUserID)
 		}
 	}
 	if ps := saq.predicates; len(ps) > 0 {

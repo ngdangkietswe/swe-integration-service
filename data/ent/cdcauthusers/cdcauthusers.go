@@ -20,11 +20,13 @@ const (
 	EdgeStravaAccounts = "strava_accounts"
 	// Table holds the table name of the cdcauthusers in the database.
 	Table = "cdc_auth_users"
-	// StravaAccountsTable is the table that holds the strava_accounts relation/edge. The primary key declared below.
-	StravaAccountsTable = "cdc_auth_users_strava_accounts"
+	// StravaAccountsTable is the table that holds the strava_accounts relation/edge.
+	StravaAccountsTable = "strava_account"
 	// StravaAccountsInverseTable is the table name for the StravaAccount entity.
 	// It exists in this package in order to avoid circular dependency with the "stravaaccount" package.
 	StravaAccountsInverseTable = "strava_account"
+	// StravaAccountsColumn is the table column denoting the strava_accounts relation/edge.
+	StravaAccountsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for cdcauthusers fields.
@@ -33,12 +35,6 @@ var Columns = []string{
 	FieldUsername,
 	FieldEmail,
 }
-
-var (
-	// StravaAccountsPrimaryKey and StravaAccountsColumn2 are the table columns denoting the
-	// primary key for the strava_accounts relation (M2M).
-	StravaAccountsPrimaryKey = []string{"cdc_auth_users_id", "strava_account_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -92,6 +88,6 @@ func newStravaAccountsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(StravaAccountsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, StravaAccountsTable, StravaAccountsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.O2M, false, StravaAccountsTable, StravaAccountsColumn),
 	)
 }

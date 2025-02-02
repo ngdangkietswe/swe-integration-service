@@ -76,7 +76,7 @@ func (cauq *CdcAuthUsersQuery) QueryStravaAccounts() *StravaAccountQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(cdcauthusers.Table, cdcauthusers.FieldID, selector),
 			sqlgraph.To(stravaaccount.Table, stravaaccount.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, cdcauthusers.StravaAccountsTable, cdcauthusers.StravaAccountsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, cdcauthusers.StravaAccountsTable, cdcauthusers.StravaAccountsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cauq.driver.Dialect(), step)
 		return fromU, nil
@@ -405,63 +405,32 @@ func (cauq *CdcAuthUsersQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 }
 
 func (cauq *CdcAuthUsersQuery) loadStravaAccounts(ctx context.Context, query *StravaAccountQuery, nodes []*CdcAuthUsers, init func(*CdcAuthUsers), assign func(*CdcAuthUsers, *StravaAccount)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[uuid.UUID]*CdcAuthUsers)
-	nids := make(map[uuid.UUID]map[*CdcAuthUsers]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*CdcAuthUsers)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
 		if init != nil {
-			init(node)
+			init(nodes[i])
 		}
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(cdcauthusers.StravaAccountsTable)
-		s.Join(joinT).On(s.C(stravaaccount.FieldID), joinT.C(cdcauthusers.StravaAccountsPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(cdcauthusers.StravaAccountsPrimaryKey[0]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(cdcauthusers.StravaAccountsPrimaryKey[0]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(stravaaccount.FieldUserID)
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(uuid.UUID)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := *values[0].(*uuid.UUID)
-				inValue := *values[1].(*uuid.UUID)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*CdcAuthUsers]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*StravaAccount](ctx, query, qr, query.inters)
+	query.Where(predicate.StravaAccount(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(cdcauthusers.StravaAccountsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		fk := n.UserID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected "strava_accounts" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
-		}
+		assign(node, n)
 	}
 	return nil
 }

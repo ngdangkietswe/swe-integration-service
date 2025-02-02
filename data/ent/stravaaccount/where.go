@@ -131,26 +131,6 @@ func UserIDNotIn(vs ...uuid.UUID) predicate.StravaAccount {
 	return predicate.StravaAccount(sql.FieldNotIn(FieldUserID, vs...))
 }
 
-// UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v uuid.UUID) predicate.StravaAccount {
-	return predicate.StravaAccount(sql.FieldGT(FieldUserID, v))
-}
-
-// UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v uuid.UUID) predicate.StravaAccount {
-	return predicate.StravaAccount(sql.FieldGTE(FieldUserID, v))
-}
-
-// UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v uuid.UUID) predicate.StravaAccount {
-	return predicate.StravaAccount(sql.FieldLT(FieldUserID, v))
-}
-
-// UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v uuid.UUID) predicate.StravaAccount {
-	return predicate.StravaAccount(sql.FieldLTE(FieldUserID, v))
-}
-
 // AthleteIDEQ applies the EQ predicate on the "athlete_id" field.
 func AthleteIDEQ(v int64) predicate.StravaAccount {
 	return predicate.StravaAccount(sql.FieldEQ(FieldAthleteID, v))
@@ -706,7 +686,7 @@ func HasCdcAuthUsers() predicate.StravaAccount {
 	return predicate.StravaAccount(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, CdcAuthUsersTable, CdcAuthUsersPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, CdcAuthUsersTable, CdcAuthUsersColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

@@ -37,7 +37,10 @@ func (StravaAccount) Fields() []ent.Field {
 func (StravaAccount) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("cdc_auth_users", CdcAuthUsers.Type).
-			Ref("strava_accounts"),
+			Ref("strava_accounts").
+			Unique().
+			Required().
+			Field("user_id"),
 	}
 }
 

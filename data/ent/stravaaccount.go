@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/ngdangkietswe/swe-integration-service/data/ent/cdcauthusers"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaaccount"
 )
 
@@ -49,17 +50,19 @@ type StravaAccount struct {
 // StravaAccountEdges holds the relations/edges for other nodes in the graph.
 type StravaAccountEdges struct {
 	// CdcAuthUsers holds the value of the cdc_auth_users edge.
-	CdcAuthUsers []*CdcAuthUsers `json:"cdc_auth_users,omitempty"`
+	CdcAuthUsers *CdcAuthUsers `json:"cdc_auth_users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
 // CdcAuthUsersOrErr returns the CdcAuthUsers value or an error if the edge
-// was not loaded in eager-loading.
-func (e StravaAccountEdges) CdcAuthUsersOrErr() ([]*CdcAuthUsers, error) {
-	if e.loadedTypes[0] {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e StravaAccountEdges) CdcAuthUsersOrErr() (*CdcAuthUsers, error) {
+	if e.CdcAuthUsers != nil {
 		return e.CdcAuthUsers, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: cdcauthusers.Label}
 	}
 	return nil, &NotLoadedError{edge: "cdc_auth_users"}
 }

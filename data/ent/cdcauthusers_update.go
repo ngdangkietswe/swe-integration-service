@@ -160,10 +160,10 @@ func (cauu *CdcAuthUsersUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if cauu.mutation.StravaAccountsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   cdcauthusers.StravaAccountsTable,
-			Columns: cdcauthusers.StravaAccountsPrimaryKey,
+			Columns: []string{cdcauthusers.StravaAccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stravaaccount.FieldID, field.TypeUUID),
@@ -173,10 +173,10 @@ func (cauu *CdcAuthUsersUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if nodes := cauu.mutation.RemovedStravaAccountsIDs(); len(nodes) > 0 && !cauu.mutation.StravaAccountsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   cdcauthusers.StravaAccountsTable,
-			Columns: cdcauthusers.StravaAccountsPrimaryKey,
+			Columns: []string{cdcauthusers.StravaAccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stravaaccount.FieldID, field.TypeUUID),
@@ -189,10 +189,10 @@ func (cauu *CdcAuthUsersUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if nodes := cauu.mutation.StravaAccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   cdcauthusers.StravaAccountsTable,
-			Columns: cdcauthusers.StravaAccountsPrimaryKey,
+			Columns: []string{cdcauthusers.StravaAccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stravaaccount.FieldID, field.TypeUUID),
@@ -384,10 +384,10 @@ func (cauuo *CdcAuthUsersUpdateOne) sqlSave(ctx context.Context) (_node *CdcAuth
 	}
 	if cauuo.mutation.StravaAccountsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   cdcauthusers.StravaAccountsTable,
-			Columns: cdcauthusers.StravaAccountsPrimaryKey,
+			Columns: []string{cdcauthusers.StravaAccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stravaaccount.FieldID, field.TypeUUID),
@@ -397,10 +397,10 @@ func (cauuo *CdcAuthUsersUpdateOne) sqlSave(ctx context.Context) (_node *CdcAuth
 	}
 	if nodes := cauuo.mutation.RemovedStravaAccountsIDs(); len(nodes) > 0 && !cauuo.mutation.StravaAccountsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   cdcauthusers.StravaAccountsTable,
-			Columns: cdcauthusers.StravaAccountsPrimaryKey,
+			Columns: []string{cdcauthusers.StravaAccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stravaaccount.FieldID, field.TypeUUID),
@@ -413,10 +413,10 @@ func (cauuo *CdcAuthUsersUpdateOne) sqlSave(ctx context.Context) (_node *CdcAuth
 	}
 	if nodes := cauuo.mutation.StravaAccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   cdcauthusers.StravaAccountsTable,
-			Columns: cdcauthusers.StravaAccountsPrimaryKey,
+			Columns: []string{cdcauthusers.StravaAccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stravaaccount.FieldID, field.TypeUUID),

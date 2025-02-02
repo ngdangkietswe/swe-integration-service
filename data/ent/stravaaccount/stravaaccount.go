@@ -41,11 +41,13 @@ const (
 	EdgeCdcAuthUsers = "cdc_auth_users"
 	// Table holds the table name of the stravaaccount in the database.
 	Table = "strava_account"
-	// CdcAuthUsersTable is the table that holds the cdc_auth_users relation/edge. The primary key declared below.
-	CdcAuthUsersTable = "cdc_auth_users_strava_accounts"
+	// CdcAuthUsersTable is the table that holds the cdc_auth_users relation/edge.
+	CdcAuthUsersTable = "strava_account"
 	// CdcAuthUsersInverseTable is the table name for the CdcAuthUsers entity.
 	// It exists in this package in order to avoid circular dependency with the "cdcauthusers" package.
 	CdcAuthUsersInverseTable = "cdc_auth_users"
+	// CdcAuthUsersColumn is the table column denoting the cdc_auth_users relation/edge.
+	CdcAuthUsersColumn = "user_id"
 )
 
 // Columns holds all SQL columns for stravaaccount fields.
@@ -63,12 +65,6 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
-
-var (
-	// CdcAuthUsersPrimaryKey and CdcAuthUsersColumn2 are the table columns denoting the
-	// primary key for the cdc_auth_users relation (M2M).
-	CdcAuthUsersPrimaryKey = []string{"cdc_auth_users_id", "strava_account_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -164,23 +160,16 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByCdcAuthUsersCount orders the results by cdc_auth_users count.
-func ByCdcAuthUsersCount(opts ...sql.OrderTermOption) OrderOption {
+// ByCdcAuthUsersField orders the results by cdc_auth_users field.
+func ByCdcAuthUsersField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newCdcAuthUsersStep(), opts...)
-	}
-}
-
-// ByCdcAuthUsers orders the results by cdc_auth_users terms.
-func ByCdcAuthUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCdcAuthUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newCdcAuthUsersStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newCdcAuthUsersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CdcAuthUsersInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, CdcAuthUsersTable, CdcAuthUsersPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2O, true, CdcAuthUsersTable, CdcAuthUsersColumn),
 	)
 }

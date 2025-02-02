@@ -199,7 +199,7 @@ func HasStravaAccounts() predicate.CdcAuthUsers {
 	return predicate.CdcAuthUsers(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, StravaAccountsTable, StravaAccountsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, StravaAccountsTable, StravaAccountsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

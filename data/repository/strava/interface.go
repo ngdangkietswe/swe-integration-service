@@ -10,4 +10,5 @@ import (
 type IStravaRepository interface {
 	SaveStravaAccount(ctx context.Context, req *integration.IntegrateStravaAccountReq) (*ent.StravaAccount, error)
 	GetStravaAccountByUserId(ctx context.Context, userId uuid.UUID) (*ent.StravaAccount, error)
+	ExistsByUserIdAndAthleteId(ctx context.Context, userId uuid.UUID, athleteId int64) (bool, error)
 }

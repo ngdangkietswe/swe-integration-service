@@ -515,7 +515,6 @@ type StravaAccountMutation struct {
 	op                    Op
 	typ                   string
 	id                    *uuid.UUID
-	user_id               *uuid.UUID
 	athlete_id            *int64
 	addathlete_id         *int64
 	access_token          *string
@@ -528,8 +527,7 @@ type StravaAccountMutation struct {
 	created_at            *time.Time
 	updated_at            *time.Time
 	clearedFields         map[string]struct{}
-	cdc_auth_users        map[uuid.UUID]struct{}
-	removedcdc_auth_users map[uuid.UUID]struct{}
+	cdc_auth_users        *uuid.UUID
 	clearedcdc_auth_users bool
 	done                  bool
 	oldValue              func(context.Context) (*StravaAccount, error)
@@ -642,12 +640,12 @@ func (m *StravaAccountMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 
 // SetUserID sets the "user_id" field.
 func (m *StravaAccountMutation) SetUserID(u uuid.UUID) {
-	m.user_id = &u
+	m.cdc_auth_users = &u
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
 func (m *StravaAccountMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user_id
+	v := m.cdc_auth_users
 	if v == nil {
 		return
 	}
@@ -673,7 +671,7 @@ func (m *StravaAccountMutation) OldUserID(ctx context.Context) (v uuid.UUID, err
 
 // ResetUserID resets all changes to the "user_id" field.
 func (m *StravaAccountMutation) ResetUserID() {
-	m.user_id = nil
+	m.cdc_auth_users = nil
 }
 
 // SetAthleteID sets the "athlete_id" field.
@@ -1056,19 +1054,15 @@ func (m *StravaAccountMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddCdcAuthUserIDs adds the "cdc_auth_users" edge to the CdcAuthUsers entity by ids.
-func (m *StravaAccountMutation) AddCdcAuthUserIDs(ids ...uuid.UUID) {
-	if m.cdc_auth_users == nil {
-		m.cdc_auth_users = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.cdc_auth_users[ids[i]] = struct{}{}
-	}
+// SetCdcAuthUsersID sets the "cdc_auth_users" edge to the CdcAuthUsers entity by id.
+func (m *StravaAccountMutation) SetCdcAuthUsersID(id uuid.UUID) {
+	m.cdc_auth_users = &id
 }
 
 // ClearCdcAuthUsers clears the "cdc_auth_users" edge to the CdcAuthUsers entity.
 func (m *StravaAccountMutation) ClearCdcAuthUsers() {
 	m.clearedcdc_auth_users = true
+	m.clearedFields[stravaaccount.FieldUserID] = struct{}{}
 }
 
 // CdcAuthUsersCleared reports if the "cdc_auth_users" edge to the CdcAuthUsers entity was cleared.
@@ -1076,29 +1070,20 @@ func (m *StravaAccountMutation) CdcAuthUsersCleared() bool {
 	return m.clearedcdc_auth_users
 }
 
-// RemoveCdcAuthUserIDs removes the "cdc_auth_users" edge to the CdcAuthUsers entity by IDs.
-func (m *StravaAccountMutation) RemoveCdcAuthUserIDs(ids ...uuid.UUID) {
-	if m.removedcdc_auth_users == nil {
-		m.removedcdc_auth_users = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.cdc_auth_users, ids[i])
-		m.removedcdc_auth_users[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedCdcAuthUsers returns the removed IDs of the "cdc_auth_users" edge to the CdcAuthUsers entity.
-func (m *StravaAccountMutation) RemovedCdcAuthUsersIDs() (ids []uuid.UUID) {
-	for id := range m.removedcdc_auth_users {
-		ids = append(ids, id)
+// CdcAuthUsersID returns the "cdc_auth_users" edge ID in the mutation.
+func (m *StravaAccountMutation) CdcAuthUsersID() (id uuid.UUID, exists bool) {
+	if m.cdc_auth_users != nil {
+		return *m.cdc_auth_users, true
 	}
 	return
 }
 
 // CdcAuthUsersIDs returns the "cdc_auth_users" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CdcAuthUsersID instead. It exists only for internal usage by the builders.
 func (m *StravaAccountMutation) CdcAuthUsersIDs() (ids []uuid.UUID) {
-	for id := range m.cdc_auth_users {
-		ids = append(ids, id)
+	if id := m.cdc_auth_users; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1107,7 +1092,6 @@ func (m *StravaAccountMutation) CdcAuthUsersIDs() (ids []uuid.UUID) {
 func (m *StravaAccountMutation) ResetCdcAuthUsers() {
 	m.cdc_auth_users = nil
 	m.clearedcdc_auth_users = false
-	m.removedcdc_auth_users = nil
 }
 
 // Where appends a list predicates to the StravaAccountMutation builder.
@@ -1145,7 +1129,7 @@ func (m *StravaAccountMutation) Type() string {
 // AddedFields().
 func (m *StravaAccountMutation) Fields() []string {
 	fields := make([]string, 0, 11)
-	if m.user_id != nil {
+	if m.cdc_auth_users != nil {
 		fields = append(fields, stravaaccount.FieldUserID)
 	}
 	if m.athlete_id != nil {
@@ -1440,11 +1424,9 @@ func (m *StravaAccountMutation) AddedEdges() []string {
 func (m *StravaAccountMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case stravaaccount.EdgeCdcAuthUsers:
-		ids := make([]ent.Value, 0, len(m.cdc_auth_users))
-		for id := range m.cdc_auth_users {
-			ids = append(ids, id)
+		if id := m.cdc_auth_users; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	}
 	return nil
 }
@@ -1452,23 +1434,12 @@ func (m *StravaAccountMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *StravaAccountMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedcdc_auth_users != nil {
-		edges = append(edges, stravaaccount.EdgeCdcAuthUsers)
-	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *StravaAccountMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case stravaaccount.EdgeCdcAuthUsers:
-		ids := make([]ent.Value, 0, len(m.removedcdc_auth_users))
-		for id := range m.removedcdc_auth_users {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
@@ -1495,6 +1466,9 @@ func (m *StravaAccountMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *StravaAccountMutation) ClearEdge(name string) error {
 	switch name {
+	case stravaaccount.EdgeCdcAuthUsers:
+		m.ClearCdcAuthUsers()
+		return nil
 	}
 	return fmt.Errorf("unknown StravaAccount unique edge %s", name)
 }

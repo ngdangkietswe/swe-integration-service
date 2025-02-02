@@ -149,10 +149,10 @@ func (cauc *CdcAuthUsersCreate) createSpec() (*CdcAuthUsers, *sqlgraph.CreateSpe
 	}
 	if nodes := cauc.mutation.StravaAccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   cdcauthusers.StravaAccountsTable,
-			Columns: cdcauthusers.StravaAccountsPrimaryKey,
+			Columns: []string{cdcauthusers.StravaAccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stravaaccount.FieldID, field.TypeUUID),

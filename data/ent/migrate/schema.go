@@ -24,7 +24,6 @@ var (
 	// StravaAccountColumns holds the columns for the "strava_account" table.
 	StravaAccountColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "user_id", Type: field.TypeUUID},
 		{Name: "athlete_id", Type: field.TypeInt64},
 		{Name: "access_token", Type: field.TypeString},
 		{Name: "refresh_token", Type: field.TypeString},
@@ -35,35 +34,19 @@ var (
 		{Name: "last_name", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// StravaAccountTable holds the schema information for the "strava_account" table.
 	StravaAccountTable = &schema.Table{
 		Name:       "strava_account",
 		Columns:    StravaAccountColumns,
 		PrimaryKey: []*schema.Column{StravaAccountColumns[0]},
-	}
-	// CdcAuthUsersStravaAccountsColumns holds the columns for the "cdc_auth_users_strava_accounts" table.
-	CdcAuthUsersStravaAccountsColumns = []*schema.Column{
-		{Name: "cdc_auth_users_id", Type: field.TypeUUID},
-		{Name: "strava_account_id", Type: field.TypeUUID},
-	}
-	// CdcAuthUsersStravaAccountsTable holds the schema information for the "cdc_auth_users_strava_accounts" table.
-	CdcAuthUsersStravaAccountsTable = &schema.Table{
-		Name:       "cdc_auth_users_strava_accounts",
-		Columns:    CdcAuthUsersStravaAccountsColumns,
-		PrimaryKey: []*schema.Column{CdcAuthUsersStravaAccountsColumns[0], CdcAuthUsersStravaAccountsColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "cdc_auth_users_strava_accounts_cdc_auth_users_id",
-				Columns:    []*schema.Column{CdcAuthUsersStravaAccountsColumns[0]},
+				Symbol:     "strava_account_cdc_auth_users_strava_accounts",
+				Columns:    []*schema.Column{StravaAccountColumns[11]},
 				RefColumns: []*schema.Column{CdcAuthUsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "cdc_auth_users_strava_accounts_strava_account_id",
-				Columns:    []*schema.Column{CdcAuthUsersStravaAccountsColumns[1]},
-				RefColumns: []*schema.Column{StravaAccountColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -71,7 +54,6 @@ var (
 	Tables = []*schema.Table{
 		CdcAuthUsersTable,
 		StravaAccountTable,
-		CdcAuthUsersStravaAccountsTable,
 	}
 )
 
@@ -79,9 +61,8 @@ func init() {
 	CdcAuthUsersTable.Annotation = &entsql.Annotation{
 		Table: "cdc_auth_users",
 	}
+	StravaAccountTable.ForeignKeys[0].RefTable = CdcAuthUsersTable
 	StravaAccountTable.Annotation = &entsql.Annotation{
 		Table: "strava_account",
 	}
-	CdcAuthUsersStravaAccountsTable.ForeignKeys[0].RefTable = CdcAuthUsersTable
-	CdcAuthUsersStravaAccountsTable.ForeignKeys[1].RefTable = StravaAccountTable
 }

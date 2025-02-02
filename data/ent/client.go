@@ -324,7 +324,7 @@ func (c *CdcAuthUsersClient) QueryStravaAccounts(cau *CdcAuthUsers) *StravaAccou
 		step := sqlgraph.NewStep(
 			sqlgraph.From(cdcauthusers.Table, cdcauthusers.FieldID, id),
 			sqlgraph.To(stravaaccount.Table, stravaaccount.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, cdcauthusers.StravaAccountsTable, cdcauthusers.StravaAccountsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, cdcauthusers.StravaAccountsTable, cdcauthusers.StravaAccountsColumn),
 		)
 		fromV = sqlgraph.Neighbors(cau.driver.Dialect(), step)
 		return fromV, nil
@@ -473,7 +473,7 @@ func (c *StravaAccountClient) QueryCdcAuthUsers(sa *StravaAccount) *CdcAuthUsers
 		step := sqlgraph.NewStep(
 			sqlgraph.From(stravaaccount.Table, stravaaccount.FieldID, id),
 			sqlgraph.To(cdcauthusers.Table, cdcauthusers.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, stravaaccount.CdcAuthUsersTable, stravaaccount.CdcAuthUsersPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, stravaaccount.CdcAuthUsersTable, stravaaccount.CdcAuthUsersColumn),
 		)
 		fromV = sqlgraph.Neighbors(sa.driver.Dialect(), step)
 		return fromV, nil

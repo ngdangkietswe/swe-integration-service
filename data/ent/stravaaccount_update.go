@@ -177,19 +177,15 @@ func (sau *StravaAccountUpdate) SetNillableUpdatedAt(t *time.Time) *StravaAccoun
 	return sau
 }
 
-// AddCdcAuthUserIDs adds the "cdc_auth_users" edge to the CdcAuthUsers entity by IDs.
-func (sau *StravaAccountUpdate) AddCdcAuthUserIDs(ids ...uuid.UUID) *StravaAccountUpdate {
-	sau.mutation.AddCdcAuthUserIDs(ids...)
+// SetCdcAuthUsersID sets the "cdc_auth_users" edge to the CdcAuthUsers entity by ID.
+func (sau *StravaAccountUpdate) SetCdcAuthUsersID(id uuid.UUID) *StravaAccountUpdate {
+	sau.mutation.SetCdcAuthUsersID(id)
 	return sau
 }
 
-// AddCdcAuthUsers adds the "cdc_auth_users" edges to the CdcAuthUsers entity.
-func (sau *StravaAccountUpdate) AddCdcAuthUsers(c ...*CdcAuthUsers) *StravaAccountUpdate {
-	ids := make([]uuid.UUID, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return sau.AddCdcAuthUserIDs(ids...)
+// SetCdcAuthUsers sets the "cdc_auth_users" edge to the CdcAuthUsers entity.
+func (sau *StravaAccountUpdate) SetCdcAuthUsers(c *CdcAuthUsers) *StravaAccountUpdate {
+	return sau.SetCdcAuthUsersID(c.ID)
 }
 
 // Mutation returns the StravaAccountMutation object of the builder.
@@ -197,25 +193,10 @@ func (sau *StravaAccountUpdate) Mutation() *StravaAccountMutation {
 	return sau.mutation
 }
 
-// ClearCdcAuthUsers clears all "cdc_auth_users" edges to the CdcAuthUsers entity.
+// ClearCdcAuthUsers clears the "cdc_auth_users" edge to the CdcAuthUsers entity.
 func (sau *StravaAccountUpdate) ClearCdcAuthUsers() *StravaAccountUpdate {
 	sau.mutation.ClearCdcAuthUsers()
 	return sau
-}
-
-// RemoveCdcAuthUserIDs removes the "cdc_auth_users" edge to CdcAuthUsers entities by IDs.
-func (sau *StravaAccountUpdate) RemoveCdcAuthUserIDs(ids ...uuid.UUID) *StravaAccountUpdate {
-	sau.mutation.RemoveCdcAuthUserIDs(ids...)
-	return sau
-}
-
-// RemoveCdcAuthUsers removes "cdc_auth_users" edges to CdcAuthUsers entities.
-func (sau *StravaAccountUpdate) RemoveCdcAuthUsers(c ...*CdcAuthUsers) *StravaAccountUpdate {
-	ids := make([]uuid.UUID, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return sau.RemoveCdcAuthUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -277,6 +258,9 @@ func (sau *StravaAccountUpdate) check() error {
 			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "StravaAccount.last_name": %w`, err)}
 		}
 	}
+	if sau.mutation.CdcAuthUsersCleared() && len(sau.mutation.CdcAuthUsersIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "StravaAccount.cdc_auth_users"`)
+	}
 	return nil
 }
 
@@ -291,9 +275,6 @@ func (sau *StravaAccountUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := sau.mutation.UserID(); ok {
-		_spec.SetField(stravaaccount.FieldUserID, field.TypeUUID, value)
 	}
 	if value, ok := sau.mutation.AthleteID(); ok {
 		_spec.SetField(stravaaccount.FieldAthleteID, field.TypeInt64, value)
@@ -327,39 +308,23 @@ func (sau *StravaAccountUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if sau.mutation.CdcAuthUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   stravaaccount.CdcAuthUsersTable,
-			Columns: stravaaccount.CdcAuthUsersPrimaryKey,
+			Columns: []string{stravaaccount.CdcAuthUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cdcauthusers.FieldID, field.TypeUUID),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := sau.mutation.RemovedCdcAuthUsersIDs(); len(nodes) > 0 && !sau.mutation.CdcAuthUsersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   stravaaccount.CdcAuthUsersTable,
-			Columns: stravaaccount.CdcAuthUsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(cdcauthusers.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := sau.mutation.CdcAuthUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   stravaaccount.CdcAuthUsersTable,
-			Columns: stravaaccount.CdcAuthUsersPrimaryKey,
+			Columns: []string{stravaaccount.CdcAuthUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cdcauthusers.FieldID, field.TypeUUID),
@@ -537,19 +502,15 @@ func (sauo *StravaAccountUpdateOne) SetNillableUpdatedAt(t *time.Time) *StravaAc
 	return sauo
 }
 
-// AddCdcAuthUserIDs adds the "cdc_auth_users" edge to the CdcAuthUsers entity by IDs.
-func (sauo *StravaAccountUpdateOne) AddCdcAuthUserIDs(ids ...uuid.UUID) *StravaAccountUpdateOne {
-	sauo.mutation.AddCdcAuthUserIDs(ids...)
+// SetCdcAuthUsersID sets the "cdc_auth_users" edge to the CdcAuthUsers entity by ID.
+func (sauo *StravaAccountUpdateOne) SetCdcAuthUsersID(id uuid.UUID) *StravaAccountUpdateOne {
+	sauo.mutation.SetCdcAuthUsersID(id)
 	return sauo
 }
 
-// AddCdcAuthUsers adds the "cdc_auth_users" edges to the CdcAuthUsers entity.
-func (sauo *StravaAccountUpdateOne) AddCdcAuthUsers(c ...*CdcAuthUsers) *StravaAccountUpdateOne {
-	ids := make([]uuid.UUID, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return sauo.AddCdcAuthUserIDs(ids...)
+// SetCdcAuthUsers sets the "cdc_auth_users" edge to the CdcAuthUsers entity.
+func (sauo *StravaAccountUpdateOne) SetCdcAuthUsers(c *CdcAuthUsers) *StravaAccountUpdateOne {
+	return sauo.SetCdcAuthUsersID(c.ID)
 }
 
 // Mutation returns the StravaAccountMutation object of the builder.
@@ -557,25 +518,10 @@ func (sauo *StravaAccountUpdateOne) Mutation() *StravaAccountMutation {
 	return sauo.mutation
 }
 
-// ClearCdcAuthUsers clears all "cdc_auth_users" edges to the CdcAuthUsers entity.
+// ClearCdcAuthUsers clears the "cdc_auth_users" edge to the CdcAuthUsers entity.
 func (sauo *StravaAccountUpdateOne) ClearCdcAuthUsers() *StravaAccountUpdateOne {
 	sauo.mutation.ClearCdcAuthUsers()
 	return sauo
-}
-
-// RemoveCdcAuthUserIDs removes the "cdc_auth_users" edge to CdcAuthUsers entities by IDs.
-func (sauo *StravaAccountUpdateOne) RemoveCdcAuthUserIDs(ids ...uuid.UUID) *StravaAccountUpdateOne {
-	sauo.mutation.RemoveCdcAuthUserIDs(ids...)
-	return sauo
-}
-
-// RemoveCdcAuthUsers removes "cdc_auth_users" edges to CdcAuthUsers entities.
-func (sauo *StravaAccountUpdateOne) RemoveCdcAuthUsers(c ...*CdcAuthUsers) *StravaAccountUpdateOne {
-	ids := make([]uuid.UUID, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return sauo.RemoveCdcAuthUserIDs(ids...)
 }
 
 // Where appends a list predicates to the StravaAccountUpdate builder.
@@ -650,6 +596,9 @@ func (sauo *StravaAccountUpdateOne) check() error {
 			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "StravaAccount.last_name": %w`, err)}
 		}
 	}
+	if sauo.mutation.CdcAuthUsersCleared() && len(sauo.mutation.CdcAuthUsersIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "StravaAccount.cdc_auth_users"`)
+	}
 	return nil
 }
 
@@ -681,9 +630,6 @@ func (sauo *StravaAccountUpdateOne) sqlSave(ctx context.Context) (_node *StravaA
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := sauo.mutation.UserID(); ok {
-		_spec.SetField(stravaaccount.FieldUserID, field.TypeUUID, value)
 	}
 	if value, ok := sauo.mutation.AthleteID(); ok {
 		_spec.SetField(stravaaccount.FieldAthleteID, field.TypeInt64, value)
@@ -717,39 +663,23 @@ func (sauo *StravaAccountUpdateOne) sqlSave(ctx context.Context) (_node *StravaA
 	}
 	if sauo.mutation.CdcAuthUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   stravaaccount.CdcAuthUsersTable,
-			Columns: stravaaccount.CdcAuthUsersPrimaryKey,
+			Columns: []string{stravaaccount.CdcAuthUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cdcauthusers.FieldID, field.TypeUUID),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := sauo.mutation.RemovedCdcAuthUsersIDs(); len(nodes) > 0 && !sauo.mutation.CdcAuthUsersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   stravaaccount.CdcAuthUsersTable,
-			Columns: stravaaccount.CdcAuthUsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(cdcauthusers.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := sauo.mutation.CdcAuthUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   stravaaccount.CdcAuthUsersTable,
-			Columns: stravaaccount.CdcAuthUsersPrimaryKey,
+			Columns: []string{stravaaccount.CdcAuthUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cdcauthusers.FieldID, field.TypeUUID),

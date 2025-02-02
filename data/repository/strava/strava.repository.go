@@ -13,6 +13,11 @@ type stravaRepository struct {
 	entClient *ent.Client
 }
 
+// ExistsByUserIdAndAthleteId is a function that checks if a Strava account exists by user ID and athlete ID
+func (s stravaRepository) ExistsByUserIdAndAthleteId(ctx context.Context, userId uuid.UUID, athleteId int64) (bool, error) {
+	return s.entClient.StravaAccount.Query().Where(stravaaccount.UserID(userId), stravaaccount.AthleteID(athleteId)).Exist(ctx)
+}
+
 // SaveStravaAccount is a function that saves a Strava account
 func (s stravaRepository) SaveStravaAccount(ctx context.Context, req *integration.IntegrateStravaAccountReq) (*ent.StravaAccount, error) {
 	data, err := s.entClient.StravaAccount.Create().
