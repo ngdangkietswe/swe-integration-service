@@ -15,6 +15,7 @@ import (
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/cdcauthusers"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/predicate"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaaccount"
+	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaactivity"
 )
 
 const (
@@ -26,25 +27,29 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCdcAuthUsers  = "CdcAuthUsers"
-	TypeStravaAccount = "StravaAccount"
+	TypeCdcAuthUsers   = "CdcAuthUsers"
+	TypeStravaAccount  = "StravaAccount"
+	TypeStravaActivity = "StravaActivity"
 )
 
 // CdcAuthUsersMutation represents an operation that mutates the CdcAuthUsers nodes in the graph.
 type CdcAuthUsersMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	username               *string
-	email                  *string
-	clearedFields          map[string]struct{}
-	strava_accounts        map[uuid.UUID]struct{}
-	removedstrava_accounts map[uuid.UUID]struct{}
-	clearedstrava_accounts bool
-	done                   bool
-	oldValue               func(context.Context) (*CdcAuthUsers, error)
-	predicates             []predicate.CdcAuthUsers
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	username                 *string
+	email                    *string
+	clearedFields            map[string]struct{}
+	strava_accounts          map[uuid.UUID]struct{}
+	removedstrava_accounts   map[uuid.UUID]struct{}
+	clearedstrava_accounts   bool
+	strava_activities        map[uuid.UUID]struct{}
+	removedstrava_activities map[uuid.UUID]struct{}
+	clearedstrava_activities bool
+	done                     bool
+	oldValue                 func(context.Context) (*CdcAuthUsers, error)
+	predicates               []predicate.CdcAuthUsers
 }
 
 var _ ent.Mutation = (*CdcAuthUsersMutation)(nil)
@@ -277,6 +282,60 @@ func (m *CdcAuthUsersMutation) ResetStravaAccounts() {
 	m.removedstrava_accounts = nil
 }
 
+// AddStravaActivityIDs adds the "strava_activities" edge to the StravaActivity entity by ids.
+func (m *CdcAuthUsersMutation) AddStravaActivityIDs(ids ...uuid.UUID) {
+	if m.strava_activities == nil {
+		m.strava_activities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.strava_activities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStravaActivities clears the "strava_activities" edge to the StravaActivity entity.
+func (m *CdcAuthUsersMutation) ClearStravaActivities() {
+	m.clearedstrava_activities = true
+}
+
+// StravaActivitiesCleared reports if the "strava_activities" edge to the StravaActivity entity was cleared.
+func (m *CdcAuthUsersMutation) StravaActivitiesCleared() bool {
+	return m.clearedstrava_activities
+}
+
+// RemoveStravaActivityIDs removes the "strava_activities" edge to the StravaActivity entity by IDs.
+func (m *CdcAuthUsersMutation) RemoveStravaActivityIDs(ids ...uuid.UUID) {
+	if m.removedstrava_activities == nil {
+		m.removedstrava_activities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.strava_activities, ids[i])
+		m.removedstrava_activities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStravaActivities returns the removed IDs of the "strava_activities" edge to the StravaActivity entity.
+func (m *CdcAuthUsersMutation) RemovedStravaActivitiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedstrava_activities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StravaActivitiesIDs returns the "strava_activities" edge IDs in the mutation.
+func (m *CdcAuthUsersMutation) StravaActivitiesIDs() (ids []uuid.UUID) {
+	for id := range m.strava_activities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStravaActivities resets all changes to the "strava_activities" edge.
+func (m *CdcAuthUsersMutation) ResetStravaActivities() {
+	m.strava_activities = nil
+	m.clearedstrava_activities = false
+	m.removedstrava_activities = nil
+}
+
 // Where appends a list predicates to the CdcAuthUsersMutation builder.
 func (m *CdcAuthUsersMutation) Where(ps ...predicate.CdcAuthUsers) {
 	m.predicates = append(m.predicates, ps...)
@@ -427,9 +486,12 @@ func (m *CdcAuthUsersMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CdcAuthUsersMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.strava_accounts != nil {
 		edges = append(edges, cdcauthusers.EdgeStravaAccounts)
+	}
+	if m.strava_activities != nil {
+		edges = append(edges, cdcauthusers.EdgeStravaActivities)
 	}
 	return edges
 }
@@ -444,15 +506,24 @@ func (m *CdcAuthUsersMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case cdcauthusers.EdgeStravaActivities:
+		ids := make([]ent.Value, 0, len(m.strava_activities))
+		for id := range m.strava_activities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CdcAuthUsersMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedstrava_accounts != nil {
 		edges = append(edges, cdcauthusers.EdgeStravaAccounts)
+	}
+	if m.removedstrava_activities != nil {
+		edges = append(edges, cdcauthusers.EdgeStravaActivities)
 	}
 	return edges
 }
@@ -467,15 +538,24 @@ func (m *CdcAuthUsersMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case cdcauthusers.EdgeStravaActivities:
+		ids := make([]ent.Value, 0, len(m.removedstrava_activities))
+		for id := range m.removedstrava_activities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CdcAuthUsersMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedstrava_accounts {
 		edges = append(edges, cdcauthusers.EdgeStravaAccounts)
+	}
+	if m.clearedstrava_activities {
+		edges = append(edges, cdcauthusers.EdgeStravaActivities)
 	}
 	return edges
 }
@@ -486,6 +566,8 @@ func (m *CdcAuthUsersMutation) EdgeCleared(name string) bool {
 	switch name {
 	case cdcauthusers.EdgeStravaAccounts:
 		return m.clearedstrava_accounts
+	case cdcauthusers.EdgeStravaActivities:
+		return m.clearedstrava_activities
 	}
 	return false
 }
@@ -504,6 +586,9 @@ func (m *CdcAuthUsersMutation) ResetEdge(name string) error {
 	switch name {
 	case cdcauthusers.EdgeStravaAccounts:
 		m.ResetStravaAccounts()
+		return nil
+	case cdcauthusers.EdgeStravaActivities:
+		m.ResetStravaActivities()
 		return nil
 	}
 	return fmt.Errorf("unknown CdcAuthUsers edge %s", name)
@@ -1482,4 +1567,1405 @@ func (m *StravaAccountMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown StravaAccount edge %s", name)
+}
+
+// StravaActivityMutation represents an operation that mutates the StravaActivity nodes in the graph.
+type StravaActivityMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	strava_account_id       *int64
+	addstrava_account_id    *int64
+	athlete_id              *int64
+	addathlete_id           *int64
+	activity_name           *string
+	activity_type           *int
+	addactivity_type        *int
+	activity_url            *string
+	start_date              *time.Time
+	distance                *float64
+	adddistance             *float64
+	moving_time             *int32
+	addmoving_time          *int32
+	elapsed_time            *int32
+	addelapsed_time         *int32
+	total_elevation_gain    *int32
+	addtotal_elevation_gain *int32
+	average_speed           *float64
+	addaverage_speed        *float64
+	max_speed               *float64
+	addmax_speed            *float64
+	created_at              *time.Time
+	clearedFields           map[string]struct{}
+	cdc_auth_users          *uuid.UUID
+	clearedcdc_auth_users   bool
+	done                    bool
+	oldValue                func(context.Context) (*StravaActivity, error)
+	predicates              []predicate.StravaActivity
+}
+
+var _ ent.Mutation = (*StravaActivityMutation)(nil)
+
+// stravaactivityOption allows management of the mutation configuration using functional options.
+type stravaactivityOption func(*StravaActivityMutation)
+
+// newStravaActivityMutation creates new mutation for the StravaActivity entity.
+func newStravaActivityMutation(c config, op Op, opts ...stravaactivityOption) *StravaActivityMutation {
+	m := &StravaActivityMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeStravaActivity,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withStravaActivityID sets the ID field of the mutation.
+func withStravaActivityID(id uuid.UUID) stravaactivityOption {
+	return func(m *StravaActivityMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *StravaActivity
+		)
+		m.oldValue = func(ctx context.Context) (*StravaActivity, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().StravaActivity.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withStravaActivity sets the old StravaActivity of the mutation.
+func withStravaActivity(node *StravaActivity) stravaactivityOption {
+	return func(m *StravaActivityMutation) {
+		m.oldValue = func(context.Context) (*StravaActivity, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m StravaActivityMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m StravaActivityMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of StravaActivity entities.
+func (m *StravaActivityMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *StravaActivityMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *StravaActivityMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().StravaActivity.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetStravaAccountID sets the "strava_account_id" field.
+func (m *StravaActivityMutation) SetStravaAccountID(i int64) {
+	m.strava_account_id = &i
+	m.addstrava_account_id = nil
+}
+
+// StravaAccountID returns the value of the "strava_account_id" field in the mutation.
+func (m *StravaActivityMutation) StravaAccountID() (r int64, exists bool) {
+	v := m.strava_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStravaAccountID returns the old "strava_account_id" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldStravaAccountID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStravaAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStravaAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStravaAccountID: %w", err)
+	}
+	return oldValue.StravaAccountID, nil
+}
+
+// AddStravaAccountID adds i to the "strava_account_id" field.
+func (m *StravaActivityMutation) AddStravaAccountID(i int64) {
+	if m.addstrava_account_id != nil {
+		*m.addstrava_account_id += i
+	} else {
+		m.addstrava_account_id = &i
+	}
+}
+
+// AddedStravaAccountID returns the value that was added to the "strava_account_id" field in this mutation.
+func (m *StravaActivityMutation) AddedStravaAccountID() (r int64, exists bool) {
+	v := m.addstrava_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStravaAccountID resets all changes to the "strava_account_id" field.
+func (m *StravaActivityMutation) ResetStravaAccountID() {
+	m.strava_account_id = nil
+	m.addstrava_account_id = nil
+}
+
+// SetAthleteID sets the "athlete_id" field.
+func (m *StravaActivityMutation) SetAthleteID(i int64) {
+	m.athlete_id = &i
+	m.addathlete_id = nil
+}
+
+// AthleteID returns the value of the "athlete_id" field in the mutation.
+func (m *StravaActivityMutation) AthleteID() (r int64, exists bool) {
+	v := m.athlete_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAthleteID returns the old "athlete_id" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldAthleteID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAthleteID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAthleteID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAthleteID: %w", err)
+	}
+	return oldValue.AthleteID, nil
+}
+
+// AddAthleteID adds i to the "athlete_id" field.
+func (m *StravaActivityMutation) AddAthleteID(i int64) {
+	if m.addathlete_id != nil {
+		*m.addathlete_id += i
+	} else {
+		m.addathlete_id = &i
+	}
+}
+
+// AddedAthleteID returns the value that was added to the "athlete_id" field in this mutation.
+func (m *StravaActivityMutation) AddedAthleteID() (r int64, exists bool) {
+	v := m.addathlete_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAthleteID resets all changes to the "athlete_id" field.
+func (m *StravaActivityMutation) ResetAthleteID() {
+	m.athlete_id = nil
+	m.addathlete_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *StravaActivityMutation) SetUserID(u uuid.UUID) {
+	m.cdc_auth_users = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *StravaActivityMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.cdc_auth_users
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *StravaActivityMutation) ResetUserID() {
+	m.cdc_auth_users = nil
+}
+
+// SetActivityName sets the "activity_name" field.
+func (m *StravaActivityMutation) SetActivityName(s string) {
+	m.activity_name = &s
+}
+
+// ActivityName returns the value of the "activity_name" field in the mutation.
+func (m *StravaActivityMutation) ActivityName() (r string, exists bool) {
+	v := m.activity_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActivityName returns the old "activity_name" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldActivityName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActivityName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActivityName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActivityName: %w", err)
+	}
+	return oldValue.ActivityName, nil
+}
+
+// ResetActivityName resets all changes to the "activity_name" field.
+func (m *StravaActivityMutation) ResetActivityName() {
+	m.activity_name = nil
+}
+
+// SetActivityType sets the "activity_type" field.
+func (m *StravaActivityMutation) SetActivityType(i int) {
+	m.activity_type = &i
+	m.addactivity_type = nil
+}
+
+// ActivityType returns the value of the "activity_type" field in the mutation.
+func (m *StravaActivityMutation) ActivityType() (r int, exists bool) {
+	v := m.activity_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActivityType returns the old "activity_type" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldActivityType(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActivityType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActivityType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActivityType: %w", err)
+	}
+	return oldValue.ActivityType, nil
+}
+
+// AddActivityType adds i to the "activity_type" field.
+func (m *StravaActivityMutation) AddActivityType(i int) {
+	if m.addactivity_type != nil {
+		*m.addactivity_type += i
+	} else {
+		m.addactivity_type = &i
+	}
+}
+
+// AddedActivityType returns the value that was added to the "activity_type" field in this mutation.
+func (m *StravaActivityMutation) AddedActivityType() (r int, exists bool) {
+	v := m.addactivity_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetActivityType resets all changes to the "activity_type" field.
+func (m *StravaActivityMutation) ResetActivityType() {
+	m.activity_type = nil
+	m.addactivity_type = nil
+}
+
+// SetActivityURL sets the "activity_url" field.
+func (m *StravaActivityMutation) SetActivityURL(s string) {
+	m.activity_url = &s
+}
+
+// ActivityURL returns the value of the "activity_url" field in the mutation.
+func (m *StravaActivityMutation) ActivityURL() (r string, exists bool) {
+	v := m.activity_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActivityURL returns the old "activity_url" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldActivityURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActivityURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActivityURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActivityURL: %w", err)
+	}
+	return oldValue.ActivityURL, nil
+}
+
+// ResetActivityURL resets all changes to the "activity_url" field.
+func (m *StravaActivityMutation) ResetActivityURL() {
+	m.activity_url = nil
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *StravaActivityMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *StravaActivityMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *StravaActivityMutation) ResetStartDate() {
+	m.start_date = nil
+}
+
+// SetDistance sets the "distance" field.
+func (m *StravaActivityMutation) SetDistance(f float64) {
+	m.distance = &f
+	m.adddistance = nil
+}
+
+// Distance returns the value of the "distance" field in the mutation.
+func (m *StravaActivityMutation) Distance() (r float64, exists bool) {
+	v := m.distance
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDistance returns the old "distance" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldDistance(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDistance is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDistance requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDistance: %w", err)
+	}
+	return oldValue.Distance, nil
+}
+
+// AddDistance adds f to the "distance" field.
+func (m *StravaActivityMutation) AddDistance(f float64) {
+	if m.adddistance != nil {
+		*m.adddistance += f
+	} else {
+		m.adddistance = &f
+	}
+}
+
+// AddedDistance returns the value that was added to the "distance" field in this mutation.
+func (m *StravaActivityMutation) AddedDistance() (r float64, exists bool) {
+	v := m.adddistance
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDistance resets all changes to the "distance" field.
+func (m *StravaActivityMutation) ResetDistance() {
+	m.distance = nil
+	m.adddistance = nil
+}
+
+// SetMovingTime sets the "moving_time" field.
+func (m *StravaActivityMutation) SetMovingTime(i int32) {
+	m.moving_time = &i
+	m.addmoving_time = nil
+}
+
+// MovingTime returns the value of the "moving_time" field in the mutation.
+func (m *StravaActivityMutation) MovingTime() (r int32, exists bool) {
+	v := m.moving_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMovingTime returns the old "moving_time" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldMovingTime(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMovingTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMovingTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMovingTime: %w", err)
+	}
+	return oldValue.MovingTime, nil
+}
+
+// AddMovingTime adds i to the "moving_time" field.
+func (m *StravaActivityMutation) AddMovingTime(i int32) {
+	if m.addmoving_time != nil {
+		*m.addmoving_time += i
+	} else {
+		m.addmoving_time = &i
+	}
+}
+
+// AddedMovingTime returns the value that was added to the "moving_time" field in this mutation.
+func (m *StravaActivityMutation) AddedMovingTime() (r int32, exists bool) {
+	v := m.addmoving_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMovingTime resets all changes to the "moving_time" field.
+func (m *StravaActivityMutation) ResetMovingTime() {
+	m.moving_time = nil
+	m.addmoving_time = nil
+}
+
+// SetElapsedTime sets the "elapsed_time" field.
+func (m *StravaActivityMutation) SetElapsedTime(i int32) {
+	m.elapsed_time = &i
+	m.addelapsed_time = nil
+}
+
+// ElapsedTime returns the value of the "elapsed_time" field in the mutation.
+func (m *StravaActivityMutation) ElapsedTime() (r int32, exists bool) {
+	v := m.elapsed_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldElapsedTime returns the old "elapsed_time" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldElapsedTime(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldElapsedTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldElapsedTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldElapsedTime: %w", err)
+	}
+	return oldValue.ElapsedTime, nil
+}
+
+// AddElapsedTime adds i to the "elapsed_time" field.
+func (m *StravaActivityMutation) AddElapsedTime(i int32) {
+	if m.addelapsed_time != nil {
+		*m.addelapsed_time += i
+	} else {
+		m.addelapsed_time = &i
+	}
+}
+
+// AddedElapsedTime returns the value that was added to the "elapsed_time" field in this mutation.
+func (m *StravaActivityMutation) AddedElapsedTime() (r int32, exists bool) {
+	v := m.addelapsed_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetElapsedTime resets all changes to the "elapsed_time" field.
+func (m *StravaActivityMutation) ResetElapsedTime() {
+	m.elapsed_time = nil
+	m.addelapsed_time = nil
+}
+
+// SetTotalElevationGain sets the "total_elevation_gain" field.
+func (m *StravaActivityMutation) SetTotalElevationGain(i int32) {
+	m.total_elevation_gain = &i
+	m.addtotal_elevation_gain = nil
+}
+
+// TotalElevationGain returns the value of the "total_elevation_gain" field in the mutation.
+func (m *StravaActivityMutation) TotalElevationGain() (r int32, exists bool) {
+	v := m.total_elevation_gain
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalElevationGain returns the old "total_elevation_gain" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldTotalElevationGain(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalElevationGain is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalElevationGain requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalElevationGain: %w", err)
+	}
+	return oldValue.TotalElevationGain, nil
+}
+
+// AddTotalElevationGain adds i to the "total_elevation_gain" field.
+func (m *StravaActivityMutation) AddTotalElevationGain(i int32) {
+	if m.addtotal_elevation_gain != nil {
+		*m.addtotal_elevation_gain += i
+	} else {
+		m.addtotal_elevation_gain = &i
+	}
+}
+
+// AddedTotalElevationGain returns the value that was added to the "total_elevation_gain" field in this mutation.
+func (m *StravaActivityMutation) AddedTotalElevationGain() (r int32, exists bool) {
+	v := m.addtotal_elevation_gain
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalElevationGain resets all changes to the "total_elevation_gain" field.
+func (m *StravaActivityMutation) ResetTotalElevationGain() {
+	m.total_elevation_gain = nil
+	m.addtotal_elevation_gain = nil
+}
+
+// SetAverageSpeed sets the "average_speed" field.
+func (m *StravaActivityMutation) SetAverageSpeed(f float64) {
+	m.average_speed = &f
+	m.addaverage_speed = nil
+}
+
+// AverageSpeed returns the value of the "average_speed" field in the mutation.
+func (m *StravaActivityMutation) AverageSpeed() (r float64, exists bool) {
+	v := m.average_speed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAverageSpeed returns the old "average_speed" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldAverageSpeed(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAverageSpeed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAverageSpeed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAverageSpeed: %w", err)
+	}
+	return oldValue.AverageSpeed, nil
+}
+
+// AddAverageSpeed adds f to the "average_speed" field.
+func (m *StravaActivityMutation) AddAverageSpeed(f float64) {
+	if m.addaverage_speed != nil {
+		*m.addaverage_speed += f
+	} else {
+		m.addaverage_speed = &f
+	}
+}
+
+// AddedAverageSpeed returns the value that was added to the "average_speed" field in this mutation.
+func (m *StravaActivityMutation) AddedAverageSpeed() (r float64, exists bool) {
+	v := m.addaverage_speed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAverageSpeed resets all changes to the "average_speed" field.
+func (m *StravaActivityMutation) ResetAverageSpeed() {
+	m.average_speed = nil
+	m.addaverage_speed = nil
+}
+
+// SetMaxSpeed sets the "max_speed" field.
+func (m *StravaActivityMutation) SetMaxSpeed(f float64) {
+	m.max_speed = &f
+	m.addmax_speed = nil
+}
+
+// MaxSpeed returns the value of the "max_speed" field in the mutation.
+func (m *StravaActivityMutation) MaxSpeed() (r float64, exists bool) {
+	v := m.max_speed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxSpeed returns the old "max_speed" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldMaxSpeed(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxSpeed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxSpeed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxSpeed: %w", err)
+	}
+	return oldValue.MaxSpeed, nil
+}
+
+// AddMaxSpeed adds f to the "max_speed" field.
+func (m *StravaActivityMutation) AddMaxSpeed(f float64) {
+	if m.addmax_speed != nil {
+		*m.addmax_speed += f
+	} else {
+		m.addmax_speed = &f
+	}
+}
+
+// AddedMaxSpeed returns the value that was added to the "max_speed" field in this mutation.
+func (m *StravaActivityMutation) AddedMaxSpeed() (r float64, exists bool) {
+	v := m.addmax_speed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxSpeed resets all changes to the "max_speed" field.
+func (m *StravaActivityMutation) ResetMaxSpeed() {
+	m.max_speed = nil
+	m.addmax_speed = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *StravaActivityMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *StravaActivityMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the StravaActivity entity.
+// If the StravaActivity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StravaActivityMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *StravaActivityMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetCdcAuthUsersID sets the "cdc_auth_users" edge to the CdcAuthUsers entity by id.
+func (m *StravaActivityMutation) SetCdcAuthUsersID(id uuid.UUID) {
+	m.cdc_auth_users = &id
+}
+
+// ClearCdcAuthUsers clears the "cdc_auth_users" edge to the CdcAuthUsers entity.
+func (m *StravaActivityMutation) ClearCdcAuthUsers() {
+	m.clearedcdc_auth_users = true
+	m.clearedFields[stravaactivity.FieldUserID] = struct{}{}
+}
+
+// CdcAuthUsersCleared reports if the "cdc_auth_users" edge to the CdcAuthUsers entity was cleared.
+func (m *StravaActivityMutation) CdcAuthUsersCleared() bool {
+	return m.clearedcdc_auth_users
+}
+
+// CdcAuthUsersID returns the "cdc_auth_users" edge ID in the mutation.
+func (m *StravaActivityMutation) CdcAuthUsersID() (id uuid.UUID, exists bool) {
+	if m.cdc_auth_users != nil {
+		return *m.cdc_auth_users, true
+	}
+	return
+}
+
+// CdcAuthUsersIDs returns the "cdc_auth_users" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CdcAuthUsersID instead. It exists only for internal usage by the builders.
+func (m *StravaActivityMutation) CdcAuthUsersIDs() (ids []uuid.UUID) {
+	if id := m.cdc_auth_users; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCdcAuthUsers resets all changes to the "cdc_auth_users" edge.
+func (m *StravaActivityMutation) ResetCdcAuthUsers() {
+	m.cdc_auth_users = nil
+	m.clearedcdc_auth_users = false
+}
+
+// Where appends a list predicates to the StravaActivityMutation builder.
+func (m *StravaActivityMutation) Where(ps ...predicate.StravaActivity) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the StravaActivityMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *StravaActivityMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.StravaActivity, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *StravaActivityMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *StravaActivityMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (StravaActivity).
+func (m *StravaActivityMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *StravaActivityMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.strava_account_id != nil {
+		fields = append(fields, stravaactivity.FieldStravaAccountID)
+	}
+	if m.athlete_id != nil {
+		fields = append(fields, stravaactivity.FieldAthleteID)
+	}
+	if m.cdc_auth_users != nil {
+		fields = append(fields, stravaactivity.FieldUserID)
+	}
+	if m.activity_name != nil {
+		fields = append(fields, stravaactivity.FieldActivityName)
+	}
+	if m.activity_type != nil {
+		fields = append(fields, stravaactivity.FieldActivityType)
+	}
+	if m.activity_url != nil {
+		fields = append(fields, stravaactivity.FieldActivityURL)
+	}
+	if m.start_date != nil {
+		fields = append(fields, stravaactivity.FieldStartDate)
+	}
+	if m.distance != nil {
+		fields = append(fields, stravaactivity.FieldDistance)
+	}
+	if m.moving_time != nil {
+		fields = append(fields, stravaactivity.FieldMovingTime)
+	}
+	if m.elapsed_time != nil {
+		fields = append(fields, stravaactivity.FieldElapsedTime)
+	}
+	if m.total_elevation_gain != nil {
+		fields = append(fields, stravaactivity.FieldTotalElevationGain)
+	}
+	if m.average_speed != nil {
+		fields = append(fields, stravaactivity.FieldAverageSpeed)
+	}
+	if m.max_speed != nil {
+		fields = append(fields, stravaactivity.FieldMaxSpeed)
+	}
+	if m.created_at != nil {
+		fields = append(fields, stravaactivity.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *StravaActivityMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case stravaactivity.FieldStravaAccountID:
+		return m.StravaAccountID()
+	case stravaactivity.FieldAthleteID:
+		return m.AthleteID()
+	case stravaactivity.FieldUserID:
+		return m.UserID()
+	case stravaactivity.FieldActivityName:
+		return m.ActivityName()
+	case stravaactivity.FieldActivityType:
+		return m.ActivityType()
+	case stravaactivity.FieldActivityURL:
+		return m.ActivityURL()
+	case stravaactivity.FieldStartDate:
+		return m.StartDate()
+	case stravaactivity.FieldDistance:
+		return m.Distance()
+	case stravaactivity.FieldMovingTime:
+		return m.MovingTime()
+	case stravaactivity.FieldElapsedTime:
+		return m.ElapsedTime()
+	case stravaactivity.FieldTotalElevationGain:
+		return m.TotalElevationGain()
+	case stravaactivity.FieldAverageSpeed:
+		return m.AverageSpeed()
+	case stravaactivity.FieldMaxSpeed:
+		return m.MaxSpeed()
+	case stravaactivity.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *StravaActivityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case stravaactivity.FieldStravaAccountID:
+		return m.OldStravaAccountID(ctx)
+	case stravaactivity.FieldAthleteID:
+		return m.OldAthleteID(ctx)
+	case stravaactivity.FieldUserID:
+		return m.OldUserID(ctx)
+	case stravaactivity.FieldActivityName:
+		return m.OldActivityName(ctx)
+	case stravaactivity.FieldActivityType:
+		return m.OldActivityType(ctx)
+	case stravaactivity.FieldActivityURL:
+		return m.OldActivityURL(ctx)
+	case stravaactivity.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case stravaactivity.FieldDistance:
+		return m.OldDistance(ctx)
+	case stravaactivity.FieldMovingTime:
+		return m.OldMovingTime(ctx)
+	case stravaactivity.FieldElapsedTime:
+		return m.OldElapsedTime(ctx)
+	case stravaactivity.FieldTotalElevationGain:
+		return m.OldTotalElevationGain(ctx)
+	case stravaactivity.FieldAverageSpeed:
+		return m.OldAverageSpeed(ctx)
+	case stravaactivity.FieldMaxSpeed:
+		return m.OldMaxSpeed(ctx)
+	case stravaactivity.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown StravaActivity field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *StravaActivityMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case stravaactivity.FieldStravaAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStravaAccountID(v)
+		return nil
+	case stravaactivity.FieldAthleteID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAthleteID(v)
+		return nil
+	case stravaactivity.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case stravaactivity.FieldActivityName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActivityName(v)
+		return nil
+	case stravaactivity.FieldActivityType:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActivityType(v)
+		return nil
+	case stravaactivity.FieldActivityURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActivityURL(v)
+		return nil
+	case stravaactivity.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case stravaactivity.FieldDistance:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDistance(v)
+		return nil
+	case stravaactivity.FieldMovingTime:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMovingTime(v)
+		return nil
+	case stravaactivity.FieldElapsedTime:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetElapsedTime(v)
+		return nil
+	case stravaactivity.FieldTotalElevationGain:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalElevationGain(v)
+		return nil
+	case stravaactivity.FieldAverageSpeed:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAverageSpeed(v)
+		return nil
+	case stravaactivity.FieldMaxSpeed:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxSpeed(v)
+		return nil
+	case stravaactivity.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown StravaActivity field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *StravaActivityMutation) AddedFields() []string {
+	var fields []string
+	if m.addstrava_account_id != nil {
+		fields = append(fields, stravaactivity.FieldStravaAccountID)
+	}
+	if m.addathlete_id != nil {
+		fields = append(fields, stravaactivity.FieldAthleteID)
+	}
+	if m.addactivity_type != nil {
+		fields = append(fields, stravaactivity.FieldActivityType)
+	}
+	if m.adddistance != nil {
+		fields = append(fields, stravaactivity.FieldDistance)
+	}
+	if m.addmoving_time != nil {
+		fields = append(fields, stravaactivity.FieldMovingTime)
+	}
+	if m.addelapsed_time != nil {
+		fields = append(fields, stravaactivity.FieldElapsedTime)
+	}
+	if m.addtotal_elevation_gain != nil {
+		fields = append(fields, stravaactivity.FieldTotalElevationGain)
+	}
+	if m.addaverage_speed != nil {
+		fields = append(fields, stravaactivity.FieldAverageSpeed)
+	}
+	if m.addmax_speed != nil {
+		fields = append(fields, stravaactivity.FieldMaxSpeed)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *StravaActivityMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case stravaactivity.FieldStravaAccountID:
+		return m.AddedStravaAccountID()
+	case stravaactivity.FieldAthleteID:
+		return m.AddedAthleteID()
+	case stravaactivity.FieldActivityType:
+		return m.AddedActivityType()
+	case stravaactivity.FieldDistance:
+		return m.AddedDistance()
+	case stravaactivity.FieldMovingTime:
+		return m.AddedMovingTime()
+	case stravaactivity.FieldElapsedTime:
+		return m.AddedElapsedTime()
+	case stravaactivity.FieldTotalElevationGain:
+		return m.AddedTotalElevationGain()
+	case stravaactivity.FieldAverageSpeed:
+		return m.AddedAverageSpeed()
+	case stravaactivity.FieldMaxSpeed:
+		return m.AddedMaxSpeed()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *StravaActivityMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case stravaactivity.FieldStravaAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStravaAccountID(v)
+		return nil
+	case stravaactivity.FieldAthleteID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAthleteID(v)
+		return nil
+	case stravaactivity.FieldActivityType:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddActivityType(v)
+		return nil
+	case stravaactivity.FieldDistance:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDistance(v)
+		return nil
+	case stravaactivity.FieldMovingTime:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMovingTime(v)
+		return nil
+	case stravaactivity.FieldElapsedTime:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddElapsedTime(v)
+		return nil
+	case stravaactivity.FieldTotalElevationGain:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalElevationGain(v)
+		return nil
+	case stravaactivity.FieldAverageSpeed:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAverageSpeed(v)
+		return nil
+	case stravaactivity.FieldMaxSpeed:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxSpeed(v)
+		return nil
+	}
+	return fmt.Errorf("unknown StravaActivity numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *StravaActivityMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *StravaActivityMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *StravaActivityMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown StravaActivity nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *StravaActivityMutation) ResetField(name string) error {
+	switch name {
+	case stravaactivity.FieldStravaAccountID:
+		m.ResetStravaAccountID()
+		return nil
+	case stravaactivity.FieldAthleteID:
+		m.ResetAthleteID()
+		return nil
+	case stravaactivity.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case stravaactivity.FieldActivityName:
+		m.ResetActivityName()
+		return nil
+	case stravaactivity.FieldActivityType:
+		m.ResetActivityType()
+		return nil
+	case stravaactivity.FieldActivityURL:
+		m.ResetActivityURL()
+		return nil
+	case stravaactivity.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case stravaactivity.FieldDistance:
+		m.ResetDistance()
+		return nil
+	case stravaactivity.FieldMovingTime:
+		m.ResetMovingTime()
+		return nil
+	case stravaactivity.FieldElapsedTime:
+		m.ResetElapsedTime()
+		return nil
+	case stravaactivity.FieldTotalElevationGain:
+		m.ResetTotalElevationGain()
+		return nil
+	case stravaactivity.FieldAverageSpeed:
+		m.ResetAverageSpeed()
+		return nil
+	case stravaactivity.FieldMaxSpeed:
+		m.ResetMaxSpeed()
+		return nil
+	case stravaactivity.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown StravaActivity field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *StravaActivityMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cdc_auth_users != nil {
+		edges = append(edges, stravaactivity.EdgeCdcAuthUsers)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *StravaActivityMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case stravaactivity.EdgeCdcAuthUsers:
+		if id := m.cdc_auth_users; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *StravaActivityMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *StravaActivityMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *StravaActivityMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedcdc_auth_users {
+		edges = append(edges, stravaactivity.EdgeCdcAuthUsers)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *StravaActivityMutation) EdgeCleared(name string) bool {
+	switch name {
+	case stravaactivity.EdgeCdcAuthUsers:
+		return m.clearedcdc_auth_users
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *StravaActivityMutation) ClearEdge(name string) error {
+	switch name {
+	case stravaactivity.EdgeCdcAuthUsers:
+		m.ClearCdcAuthUsers()
+		return nil
+	}
+	return fmt.Errorf("unknown StravaActivity unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *StravaActivityMutation) ResetEdge(name string) error {
+	switch name {
+	case stravaactivity.EdgeCdcAuthUsers:
+		m.ResetCdcAuthUsers()
+		return nil
+	}
+	return fmt.Errorf("unknown StravaActivity edge %s", name)
 }

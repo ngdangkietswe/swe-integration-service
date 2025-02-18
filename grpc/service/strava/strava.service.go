@@ -19,6 +19,20 @@ type stravaService struct {
 	stravaRepo      stravarepo.IStravaRepository
 }
 
+const GetAthleteActivitiesEndpoint = "https://www.strava.com/api/v3/athlete/activities"
+
+// SyncStravaActivities is a function that syncs Strava activities with the user's account.
+func (s stravaService) SyncStravaActivities(ctx context.Context, req *common.EmptyReq) (*common.EmptyResp, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+// GetStravaActivities is a function that gets Strava activities of the user.
+func (s stravaService) GetStravaActivities(ctx context.Context, req *integration.GetStravaActivitiesReq) (*integration.GetStravaActivitiesResp, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 // IntegrateStravaAccount is a function that integrates a Strava account with the user's account.
 func (s stravaService) IntegrateStravaAccount(ctx context.Context, req *integration.IntegrateStravaAccountReq) (*common.EmptyResp, error) {
 	// Validate request

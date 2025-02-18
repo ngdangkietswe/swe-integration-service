@@ -16,16 +16,18 @@ import (
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/cdcauthusers"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/predicate"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaaccount"
+	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaactivity"
 )
 
 // CdcAuthUsersQuery is the builder for querying CdcAuthUsers entities.
 type CdcAuthUsersQuery struct {
 	config
-	ctx                *QueryContext
-	order              []cdcauthusers.OrderOption
-	inters             []Interceptor
-	predicates         []predicate.CdcAuthUsers
-	withStravaAccounts *StravaAccountQuery
+	ctx                  *QueryContext
+	order                []cdcauthusers.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.CdcAuthUsers
+	withStravaAccounts   *StravaAccountQuery
+	withStravaActivities *StravaActivityQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -77,6 +79,28 @@ func (cauq *CdcAuthUsersQuery) QueryStravaAccounts() *StravaAccountQuery {
 			sqlgraph.From(cdcauthusers.Table, cdcauthusers.FieldID, selector),
 			sqlgraph.To(stravaaccount.Table, stravaaccount.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, cdcauthusers.StravaAccountsTable, cdcauthusers.StravaAccountsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cauq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStravaActivities chains the current query on the "strava_activities" edge.
+func (cauq *CdcAuthUsersQuery) QueryStravaActivities() *StravaActivityQuery {
+	query := (&StravaActivityClient{config: cauq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cauq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cauq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cdcauthusers.Table, cdcauthusers.FieldID, selector),
+			sqlgraph.To(stravaactivity.Table, stravaactivity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cdcauthusers.StravaActivitiesTable, cdcauthusers.StravaActivitiesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cauq.driver.Dialect(), step)
 		return fromU, nil
@@ -271,12 +295,13 @@ func (cauq *CdcAuthUsersQuery) Clone() *CdcAuthUsersQuery {
 		return nil
 	}
 	return &CdcAuthUsersQuery{
-		config:             cauq.config,
-		ctx:                cauq.ctx.Clone(),
-		order:              append([]cdcauthusers.OrderOption{}, cauq.order...),
-		inters:             append([]Interceptor{}, cauq.inters...),
-		predicates:         append([]predicate.CdcAuthUsers{}, cauq.predicates...),
-		withStravaAccounts: cauq.withStravaAccounts.Clone(),
+		config:               cauq.config,
+		ctx:                  cauq.ctx.Clone(),
+		order:                append([]cdcauthusers.OrderOption{}, cauq.order...),
+		inters:               append([]Interceptor{}, cauq.inters...),
+		predicates:           append([]predicate.CdcAuthUsers{}, cauq.predicates...),
+		withStravaAccounts:   cauq.withStravaAccounts.Clone(),
+		withStravaActivities: cauq.withStravaActivities.Clone(),
 		// clone intermediate query.
 		sql:  cauq.sql.Clone(),
 		path: cauq.path,
@@ -291,6 +316,17 @@ func (cauq *CdcAuthUsersQuery) WithStravaAccounts(opts ...func(*StravaAccountQue
 		opt(query)
 	}
 	cauq.withStravaAccounts = query
+	return cauq
+}
+
+// WithStravaActivities tells the query-builder to eager-load the nodes that are connected to
+// the "strava_activities" edge. The optional arguments are used to configure the query builder of the edge.
+func (cauq *CdcAuthUsersQuery) WithStravaActivities(opts ...func(*StravaActivityQuery)) *CdcAuthUsersQuery {
+	query := (&StravaActivityClient{config: cauq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cauq.withStravaActivities = query
 	return cauq
 }
 
@@ -372,8 +408,9 @@ func (cauq *CdcAuthUsersQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*CdcAuthUsers{}
 		_spec       = cauq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			cauq.withStravaAccounts != nil,
+			cauq.withStravaActivities != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -401,6 +438,15 @@ func (cauq *CdcAuthUsersQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			return nil, err
 		}
 	}
+	if query := cauq.withStravaActivities; query != nil {
+		if err := cauq.loadStravaActivities(ctx, query, nodes,
+			func(n *CdcAuthUsers) { n.Edges.StravaActivities = []*StravaActivity{} },
+			func(n *CdcAuthUsers, e *StravaActivity) {
+				n.Edges.StravaActivities = append(n.Edges.StravaActivities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -419,6 +465,36 @@ func (cauq *CdcAuthUsersQuery) loadStravaAccounts(ctx context.Context, query *St
 	}
 	query.Where(predicate.StravaAccount(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(cdcauthusers.StravaAccountsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cauq *CdcAuthUsersQuery) loadStravaActivities(ctx context.Context, query *StravaActivityQuery, nodes []*CdcAuthUsers, init func(*CdcAuthUsers), assign func(*CdcAuthUsers, *StravaActivity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*CdcAuthUsers)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(stravaactivity.FieldUserID)
+	}
+	query.Where(predicate.StravaActivity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(cdcauthusers.StravaActivitiesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

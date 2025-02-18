@@ -18,6 +18,8 @@ const (
 	FieldEmail = "email"
 	// EdgeStravaAccounts holds the string denoting the strava_accounts edge name in mutations.
 	EdgeStravaAccounts = "strava_accounts"
+	// EdgeStravaActivities holds the string denoting the strava_activities edge name in mutations.
+	EdgeStravaActivities = "strava_activities"
 	// Table holds the table name of the cdcauthusers in the database.
 	Table = "cdc_auth_users"
 	// StravaAccountsTable is the table that holds the strava_accounts relation/edge.
@@ -27,6 +29,13 @@ const (
 	StravaAccountsInverseTable = "strava_account"
 	// StravaAccountsColumn is the table column denoting the strava_accounts relation/edge.
 	StravaAccountsColumn = "user_id"
+	// StravaActivitiesTable is the table that holds the strava_activities relation/edge.
+	StravaActivitiesTable = "strava_activity"
+	// StravaActivitiesInverseTable is the table name for the StravaActivity entity.
+	// It exists in this package in order to avoid circular dependency with the "stravaactivity" package.
+	StravaActivitiesInverseTable = "strava_activity"
+	// StravaActivitiesColumn is the table column denoting the strava_activities relation/edge.
+	StravaActivitiesColumn = "user_id"
 )
 
 // Columns holds all SQL columns for cdcauthusers fields.
@@ -84,10 +93,31 @@ func ByStravaAccounts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newStravaAccountsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByStravaActivitiesCount orders the results by strava_activities count.
+func ByStravaActivitiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStravaActivitiesStep(), opts...)
+	}
+}
+
+// ByStravaActivities orders the results by strava_activities terms.
+func ByStravaActivities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStravaActivitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newStravaAccountsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(StravaAccountsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, StravaAccountsTable, StravaAccountsColumn),
+	)
+}
+func newStravaActivitiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StravaActivitiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StravaActivitiesTable, StravaActivitiesColumn),
 	)
 }

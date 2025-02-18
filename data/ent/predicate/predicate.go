@@ -11,3 +11,6 @@ type CdcAuthUsers func(*sql.Selector)
 
 // StravaAccount is the predicate function for stravaaccount builders.
 type StravaAccount func(*sql.Selector)
+
+// StravaActivity is the predicate function for stravaactivity builders.
+type StravaActivity func(*sql.Selector)

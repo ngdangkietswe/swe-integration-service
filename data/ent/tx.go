@@ -16,6 +16,8 @@ type Tx struct {
 	CdcAuthUsers *CdcAuthUsersClient
 	// StravaAccount is the client for interacting with the StravaAccount builders.
 	StravaAccount *StravaAccountClient
+	// StravaActivity is the client for interacting with the StravaActivity builders.
+	StravaActivity *StravaActivityClient
 
 	// lazily loaded.
 	client     *Client
@@ -149,6 +151,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.CdcAuthUsers = NewCdcAuthUsersClient(tx.config)
 	tx.StravaAccount = NewStravaAccountClient(tx.config)
+	tx.StravaActivity = NewStravaActivityClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

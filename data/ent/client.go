@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/cdcauthusers"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaaccount"
+	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaactivity"
 )
 
 // Client is the client that holds all ent builders.
@@ -29,6 +30,8 @@ type Client struct {
 	CdcAuthUsers *CdcAuthUsersClient
 	// StravaAccount is the client for interacting with the StravaAccount builders.
 	StravaAccount *StravaAccountClient
+	// StravaActivity is the client for interacting with the StravaActivity builders.
+	StravaActivity *StravaActivityClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -42,6 +45,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.CdcAuthUsers = NewCdcAuthUsersClient(c.config)
 	c.StravaAccount = NewStravaAccountClient(c.config)
+	c.StravaActivity = NewStravaActivityClient(c.config)
 }
 
 type (
@@ -132,10 +136,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		CdcAuthUsers:  NewCdcAuthUsersClient(cfg),
-		StravaAccount: NewStravaAccountClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		CdcAuthUsers:   NewCdcAuthUsersClient(cfg),
+		StravaAccount:  NewStravaAccountClient(cfg),
+		StravaActivity: NewStravaActivityClient(cfg),
 	}, nil
 }
 
@@ -153,10 +158,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		CdcAuthUsers:  NewCdcAuthUsersClient(cfg),
-		StravaAccount: NewStravaAccountClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		CdcAuthUsers:   NewCdcAuthUsersClient(cfg),
+		StravaAccount:  NewStravaAccountClient(cfg),
+		StravaActivity: NewStravaActivityClient(cfg),
 	}, nil
 }
 
@@ -187,6 +193,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.CdcAuthUsers.Use(hooks...)
 	c.StravaAccount.Use(hooks...)
+	c.StravaActivity.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -194,6 +201,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.CdcAuthUsers.Intercept(interceptors...)
 	c.StravaAccount.Intercept(interceptors...)
+	c.StravaActivity.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -203,6 +211,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CdcAuthUsers.mutate(ctx, m)
 	case *StravaAccountMutation:
 		return c.StravaAccount.mutate(ctx, m)
+	case *StravaActivityMutation:
+		return c.StravaActivity.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -325,6 +335,22 @@ func (c *CdcAuthUsersClient) QueryStravaAccounts(cau *CdcAuthUsers) *StravaAccou
 			sqlgraph.From(cdcauthusers.Table, cdcauthusers.FieldID, id),
 			sqlgraph.To(stravaaccount.Table, stravaaccount.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, cdcauthusers.StravaAccountsTable, cdcauthusers.StravaAccountsColumn),
+		)
+		fromV = sqlgraph.Neighbors(cau.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStravaActivities queries the strava_activities edge of a CdcAuthUsers.
+func (c *CdcAuthUsersClient) QueryStravaActivities(cau *CdcAuthUsers) *StravaActivityQuery {
+	query := (&StravaActivityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cau.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cdcauthusers.Table, cdcauthusers.FieldID, id),
+			sqlgraph.To(stravaactivity.Table, stravaactivity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cdcauthusers.StravaActivitiesTable, cdcauthusers.StravaActivitiesColumn),
 		)
 		fromV = sqlgraph.Neighbors(cau.driver.Dialect(), step)
 		return fromV, nil
@@ -506,12 +532,161 @@ func (c *StravaAccountClient) mutate(ctx context.Context, m *StravaAccountMutati
 	}
 }
 
+// StravaActivityClient is a client for the StravaActivity schema.
+type StravaActivityClient struct {
+	config
+}
+
+// NewStravaActivityClient returns a client for the StravaActivity from the given config.
+func NewStravaActivityClient(c config) *StravaActivityClient {
+	return &StravaActivityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `stravaactivity.Hooks(f(g(h())))`.
+func (c *StravaActivityClient) Use(hooks ...Hook) {
+	c.hooks.StravaActivity = append(c.hooks.StravaActivity, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `stravaactivity.Intercept(f(g(h())))`.
+func (c *StravaActivityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.StravaActivity = append(c.inters.StravaActivity, interceptors...)
+}
+
+// Create returns a builder for creating a StravaActivity entity.
+func (c *StravaActivityClient) Create() *StravaActivityCreate {
+	mutation := newStravaActivityMutation(c.config, OpCreate)
+	return &StravaActivityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of StravaActivity entities.
+func (c *StravaActivityClient) CreateBulk(builders ...*StravaActivityCreate) *StravaActivityCreateBulk {
+	return &StravaActivityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *StravaActivityClient) MapCreateBulk(slice any, setFunc func(*StravaActivityCreate, int)) *StravaActivityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &StravaActivityCreateBulk{err: fmt.Errorf("calling to StravaActivityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*StravaActivityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &StravaActivityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for StravaActivity.
+func (c *StravaActivityClient) Update() *StravaActivityUpdate {
+	mutation := newStravaActivityMutation(c.config, OpUpdate)
+	return &StravaActivityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *StravaActivityClient) UpdateOne(sa *StravaActivity) *StravaActivityUpdateOne {
+	mutation := newStravaActivityMutation(c.config, OpUpdateOne, withStravaActivity(sa))
+	return &StravaActivityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *StravaActivityClient) UpdateOneID(id uuid.UUID) *StravaActivityUpdateOne {
+	mutation := newStravaActivityMutation(c.config, OpUpdateOne, withStravaActivityID(id))
+	return &StravaActivityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for StravaActivity.
+func (c *StravaActivityClient) Delete() *StravaActivityDelete {
+	mutation := newStravaActivityMutation(c.config, OpDelete)
+	return &StravaActivityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *StravaActivityClient) DeleteOne(sa *StravaActivity) *StravaActivityDeleteOne {
+	return c.DeleteOneID(sa.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *StravaActivityClient) DeleteOneID(id uuid.UUID) *StravaActivityDeleteOne {
+	builder := c.Delete().Where(stravaactivity.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &StravaActivityDeleteOne{builder}
+}
+
+// Query returns a query builder for StravaActivity.
+func (c *StravaActivityClient) Query() *StravaActivityQuery {
+	return &StravaActivityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeStravaActivity},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a StravaActivity entity by its id.
+func (c *StravaActivityClient) Get(ctx context.Context, id uuid.UUID) (*StravaActivity, error) {
+	return c.Query().Where(stravaactivity.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *StravaActivityClient) GetX(ctx context.Context, id uuid.UUID) *StravaActivity {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCdcAuthUsers queries the cdc_auth_users edge of a StravaActivity.
+func (c *StravaActivityClient) QueryCdcAuthUsers(sa *StravaActivity) *CdcAuthUsersQuery {
+	query := (&CdcAuthUsersClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sa.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(stravaactivity.Table, stravaactivity.FieldID, id),
+			sqlgraph.To(cdcauthusers.Table, cdcauthusers.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, stravaactivity.CdcAuthUsersTable, stravaactivity.CdcAuthUsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(sa.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *StravaActivityClient) Hooks() []Hook {
+	return c.hooks.StravaActivity
+}
+
+// Interceptors returns the client interceptors.
+func (c *StravaActivityClient) Interceptors() []Interceptor {
+	return c.inters.StravaActivity
+}
+
+func (c *StravaActivityClient) mutate(ctx context.Context, m *StravaActivityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&StravaActivityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&StravaActivityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&StravaActivityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&StravaActivityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown StravaActivity mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CdcAuthUsers, StravaAccount []ent.Hook
+		CdcAuthUsers, StravaAccount, StravaActivity []ent.Hook
 	}
 	inters struct {
-		CdcAuthUsers, StravaAccount []ent.Interceptor
+		CdcAuthUsers, StravaAccount, StravaActivity []ent.Interceptor
 	}
 )

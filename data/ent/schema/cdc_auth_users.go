@@ -27,6 +27,7 @@ func (CdcAuthUsers) Fields() []ent.Field {
 func (CdcAuthUsers) Edges() []ent.Edge {
 	return []ent.Edge{
 		util.One2Many("strava_accounts", StravaAccount.Type),
+		util.One2Many("strava_activities", StravaActivity.Type),
 	}
 }
 

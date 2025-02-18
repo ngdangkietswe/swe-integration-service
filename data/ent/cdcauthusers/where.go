@@ -217,6 +217,29 @@ func HasStravaAccountsWith(preds ...predicate.StravaAccount) predicate.CdcAuthUs
 	})
 }
 
+// HasStravaActivities applies the HasEdge predicate on the "strava_activities" edge.
+func HasStravaActivities() predicate.CdcAuthUsers {
+	return predicate.CdcAuthUsers(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, StravaActivitiesTable, StravaActivitiesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStravaActivitiesWith applies the HasEdge predicate on the "strava_activities" edge with a given conditions (other predicates).
+func HasStravaActivitiesWith(preds ...predicate.StravaActivity) predicate.CdcAuthUsers {
+	return predicate.CdcAuthUsers(func(s *sql.Selector) {
+		step := newStravaActivitiesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.CdcAuthUsers) predicate.CdcAuthUsers {
 	return predicate.CdcAuthUsers(sql.AndPredicates(predicates...))

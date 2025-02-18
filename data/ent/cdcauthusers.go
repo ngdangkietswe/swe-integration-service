@@ -31,9 +31,11 @@ type CdcAuthUsers struct {
 type CdcAuthUsersEdges struct {
 	// StravaAccounts holds the value of the strava_accounts edge.
 	StravaAccounts []*StravaAccount `json:"strava_accounts,omitempty"`
+	// StravaActivities holds the value of the strava_activities edge.
+	StravaActivities []*StravaActivity `json:"strava_activities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // StravaAccountsOrErr returns the StravaAccounts value or an error if the edge
@@ -43,6 +45,15 @@ func (e CdcAuthUsersEdges) StravaAccountsOrErr() ([]*StravaAccount, error) {
 		return e.StravaAccounts, nil
 	}
 	return nil, &NotLoadedError{edge: "strava_accounts"}
+}
+
+// StravaActivitiesOrErr returns the StravaActivities value or an error if the edge
+// was not loaded in eager-loading.
+func (e CdcAuthUsersEdges) StravaActivitiesOrErr() ([]*StravaActivity, error) {
+	if e.loadedTypes[1] {
+		return e.StravaActivities, nil
+	}
+	return nil, &NotLoadedError{edge: "strava_activities"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -103,6 +114,11 @@ func (cau *CdcAuthUsers) Value(name string) (ent.Value, error) {
 // QueryStravaAccounts queries the "strava_accounts" edge of the CdcAuthUsers entity.
 func (cau *CdcAuthUsers) QueryStravaAccounts() *StravaAccountQuery {
 	return NewCdcAuthUsersClient(cau.config).QueryStravaAccounts(cau)
+}
+
+// QueryStravaActivities queries the "strava_activities" edge of the CdcAuthUsers entity.
+func (cau *CdcAuthUsers) QueryStravaActivities() *StravaActivityQuery {
+	return NewCdcAuthUsersClient(cau.config).QueryStravaActivities(cau)
 }
 
 // Update returns a builder for updating this CdcAuthUsers.

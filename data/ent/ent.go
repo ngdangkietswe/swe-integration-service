@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/cdcauthusers"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaaccount"
+	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaactivity"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -74,8 +75,9 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			cdcauthusers.Table:  cdcauthusers.ValidColumn,
-			stravaaccount.Table: stravaaccount.ValidColumn,
+			cdcauthusers.Table:   cdcauthusers.ValidColumn,
+			stravaaccount.Table:  stravaaccount.ValidColumn,
+			stravaactivity.Table: stravaactivity.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

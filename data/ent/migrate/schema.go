@@ -50,10 +50,43 @@ var (
 			},
 		},
 	}
+	// StravaActivityColumns holds the columns for the "strava_activity" table.
+	StravaActivityColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "strava_account_id", Type: field.TypeInt64},
+		{Name: "athlete_id", Type: field.TypeInt64},
+		{Name: "activity_name", Type: field.TypeString},
+		{Name: "activity_type", Type: field.TypeInt, Default: 0},
+		{Name: "activity_url", Type: field.TypeString},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "distance", Type: field.TypeFloat64, Default: 0},
+		{Name: "moving_time", Type: field.TypeInt32, Default: 0},
+		{Name: "elapsed_time", Type: field.TypeInt32, Default: 0},
+		{Name: "total_elevation_gain", Type: field.TypeInt32, Default: 0},
+		{Name: "average_speed", Type: field.TypeFloat64, Default: 0},
+		{Name: "max_speed", Type: field.TypeFloat64, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// StravaActivityTable holds the schema information for the "strava_activity" table.
+	StravaActivityTable = &schema.Table{
+		Name:       "strava_activity",
+		Columns:    StravaActivityColumns,
+		PrimaryKey: []*schema.Column{StravaActivityColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "strava_activity_cdc_auth_users_strava_activities",
+				Columns:    []*schema.Column{StravaActivityColumns[14]},
+				RefColumns: []*schema.Column{CdcAuthUsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CdcAuthUsersTable,
 		StravaAccountTable,
+		StravaActivityTable,
 	}
 )
 
@@ -64,5 +97,9 @@ func init() {
 	StravaAccountTable.ForeignKeys[0].RefTable = CdcAuthUsersTable
 	StravaAccountTable.Annotation = &entsql.Annotation{
 		Table: "strava_account",
+	}
+	StravaActivityTable.ForeignKeys[0].RefTable = CdcAuthUsersTable
+	StravaActivityTable.Annotation = &entsql.Annotation{
+		Table: "strava_activity",
 	}
 }

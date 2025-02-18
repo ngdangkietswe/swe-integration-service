@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/cdcauthusers"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaaccount"
+	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaactivity"
 )
 
 // CdcAuthUsersCreate is the builder for creating a CdcAuthUsers entity.
@@ -52,6 +53,21 @@ func (cauc *CdcAuthUsersCreate) AddStravaAccounts(s ...*StravaAccount) *CdcAuthU
 		ids[i] = s[i].ID
 	}
 	return cauc.AddStravaAccountIDs(ids...)
+}
+
+// AddStravaActivityIDs adds the "strava_activities" edge to the StravaActivity entity by IDs.
+func (cauc *CdcAuthUsersCreate) AddStravaActivityIDs(ids ...uuid.UUID) *CdcAuthUsersCreate {
+	cauc.mutation.AddStravaActivityIDs(ids...)
+	return cauc
+}
+
+// AddStravaActivities adds the "strava_activities" edges to the StravaActivity entity.
+func (cauc *CdcAuthUsersCreate) AddStravaActivities(s ...*StravaActivity) *CdcAuthUsersCreate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cauc.AddStravaActivityIDs(ids...)
 }
 
 // Mutation returns the CdcAuthUsersMutation object of the builder.
@@ -156,6 +172,22 @@ func (cauc *CdcAuthUsersCreate) createSpec() (*CdcAuthUsers, *sqlgraph.CreateSpe
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stravaaccount.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cauc.mutation.StravaActivitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cdcauthusers.StravaActivitiesTable,
+			Columns: []string{cdcauthusers.StravaActivitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stravaactivity.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

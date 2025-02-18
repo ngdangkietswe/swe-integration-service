@@ -9,6 +9,7 @@ import (
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/cdcauthusers"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/schema"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaaccount"
+	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaactivity"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -91,4 +92,50 @@ func init() {
 	stravaaccountDescID := stravaaccountFields[0].Descriptor()
 	// stravaaccount.DefaultID holds the default value on creation for the id field.
 	stravaaccount.DefaultID = stravaaccountDescID.Default.(func() uuid.UUID)
+	stravaactivityFields := schema.StravaActivity{}.Fields()
+	_ = stravaactivityFields
+	// stravaactivityDescActivityName is the schema descriptor for activity_name field.
+	stravaactivityDescActivityName := stravaactivityFields[4].Descriptor()
+	// stravaactivity.ActivityNameValidator is a validator for the "activity_name" field. It is called by the builders before save.
+	stravaactivity.ActivityNameValidator = stravaactivityDescActivityName.Validators[0].(func(string) error)
+	// stravaactivityDescActivityType is the schema descriptor for activity_type field.
+	stravaactivityDescActivityType := stravaactivityFields[5].Descriptor()
+	// stravaactivity.DefaultActivityType holds the default value on creation for the activity_type field.
+	stravaactivity.DefaultActivityType = stravaactivityDescActivityType.Default.(int)
+	// stravaactivityDescActivityURL is the schema descriptor for activity_url field.
+	stravaactivityDescActivityURL := stravaactivityFields[6].Descriptor()
+	// stravaactivity.ActivityURLValidator is a validator for the "activity_url" field. It is called by the builders before save.
+	stravaactivity.ActivityURLValidator = stravaactivityDescActivityURL.Validators[0].(func(string) error)
+	// stravaactivityDescDistance is the schema descriptor for distance field.
+	stravaactivityDescDistance := stravaactivityFields[8].Descriptor()
+	// stravaactivity.DefaultDistance holds the default value on creation for the distance field.
+	stravaactivity.DefaultDistance = stravaactivityDescDistance.Default.(float64)
+	// stravaactivityDescMovingTime is the schema descriptor for moving_time field.
+	stravaactivityDescMovingTime := stravaactivityFields[9].Descriptor()
+	// stravaactivity.DefaultMovingTime holds the default value on creation for the moving_time field.
+	stravaactivity.DefaultMovingTime = stravaactivityDescMovingTime.Default.(int32)
+	// stravaactivityDescElapsedTime is the schema descriptor for elapsed_time field.
+	stravaactivityDescElapsedTime := stravaactivityFields[10].Descriptor()
+	// stravaactivity.DefaultElapsedTime holds the default value on creation for the elapsed_time field.
+	stravaactivity.DefaultElapsedTime = stravaactivityDescElapsedTime.Default.(int32)
+	// stravaactivityDescTotalElevationGain is the schema descriptor for total_elevation_gain field.
+	stravaactivityDescTotalElevationGain := stravaactivityFields[11].Descriptor()
+	// stravaactivity.DefaultTotalElevationGain holds the default value on creation for the total_elevation_gain field.
+	stravaactivity.DefaultTotalElevationGain = stravaactivityDescTotalElevationGain.Default.(int32)
+	// stravaactivityDescAverageSpeed is the schema descriptor for average_speed field.
+	stravaactivityDescAverageSpeed := stravaactivityFields[12].Descriptor()
+	// stravaactivity.DefaultAverageSpeed holds the default value on creation for the average_speed field.
+	stravaactivity.DefaultAverageSpeed = stravaactivityDescAverageSpeed.Default.(float64)
+	// stravaactivityDescMaxSpeed is the schema descriptor for max_speed field.
+	stravaactivityDescMaxSpeed := stravaactivityFields[13].Descriptor()
+	// stravaactivity.DefaultMaxSpeed holds the default value on creation for the max_speed field.
+	stravaactivity.DefaultMaxSpeed = stravaactivityDescMaxSpeed.Default.(float64)
+	// stravaactivityDescCreatedAt is the schema descriptor for created_at field.
+	stravaactivityDescCreatedAt := stravaactivityFields[14].Descriptor()
+	// stravaactivity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	stravaactivity.DefaultCreatedAt = stravaactivityDescCreatedAt.Default.(time.Time)
+	// stravaactivityDescID is the schema descriptor for id field.
+	stravaactivityDescID := stravaactivityFields[0].Descriptor()
+	// stravaactivity.DefaultID holds the default value on creation for the id field.
+	stravaactivity.DefaultID = stravaactivityDescID.Default.(func() uuid.UUID)
 }

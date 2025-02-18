@@ -27,3 +27,13 @@ func (s *StravaGrpcServer) IntegrateStravaAccount(ctx context.Context, req *inte
 func (s *StravaGrpcServer) GetStravaAccount(ctx context.Context, req *integration.GetStravaAccountReq) (*integration.GetStravaAccountResp, error) {
 	return s.stravaSvc.GetStravaAccount(ctx, req)
 }
+
+// SyncStravaActivities is a function that implements the SyncStravaActivities method of the StravaServiceServer interface
+func (s *StravaGrpcServer) SyncStravaActivities(ctx context.Context, req *common.EmptyReq) (*common.EmptyResp, error) {
+	return s.stravaSvc.SyncStravaActivities(ctx, req)
+}
+
+// GetStravaActivities is a function that implements the GetStravaActivities method of the StravaServiceServer interface
+func (s *StravaGrpcServer) GetStravaActivities(ctx context.Context, req *integration.GetStravaActivitiesReq) (*integration.GetStravaActivitiesResp, error) {
+	return s.stravaSvc.GetStravaActivities(ctx, req)
+}
