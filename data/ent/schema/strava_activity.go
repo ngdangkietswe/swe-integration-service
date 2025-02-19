@@ -19,7 +19,7 @@ type StravaActivity struct {
 func (StravaActivity) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Int64("strava_account_id"),
+		field.Int64("strava_activity_id"),
 		field.Int64("athlete_id"),
 		field.UUID("user_id", uuid.UUID{}),
 		field.String("activity_name").NotEmpty(),
@@ -29,7 +29,7 @@ func (StravaActivity) Fields() []ent.Field {
 		field.Float("distance").Default(0),
 		field.Int32("moving_time").Default(0),
 		field.Int32("elapsed_time").Default(0),
-		field.Int32("total_elevation_gain").Default(0),
+		field.Float("total_elevation_gain").Default(0),
 		field.Float("average_speed").Default(0),
 		field.Float("max_speed").Default(0),
 		field.Time("created_at").Immutable().Default(time.Now()),

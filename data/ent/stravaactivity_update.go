@@ -30,24 +30,24 @@ func (sau *StravaActivityUpdate) Where(ps ...predicate.StravaActivity) *StravaAc
 	return sau
 }
 
-// SetStravaAccountID sets the "strava_account_id" field.
-func (sau *StravaActivityUpdate) SetStravaAccountID(i int64) *StravaActivityUpdate {
-	sau.mutation.ResetStravaAccountID()
-	sau.mutation.SetStravaAccountID(i)
+// SetStravaActivityID sets the "strava_activity_id" field.
+func (sau *StravaActivityUpdate) SetStravaActivityID(i int64) *StravaActivityUpdate {
+	sau.mutation.ResetStravaActivityID()
+	sau.mutation.SetStravaActivityID(i)
 	return sau
 }
 
-// SetNillableStravaAccountID sets the "strava_account_id" field if the given value is not nil.
-func (sau *StravaActivityUpdate) SetNillableStravaAccountID(i *int64) *StravaActivityUpdate {
+// SetNillableStravaActivityID sets the "strava_activity_id" field if the given value is not nil.
+func (sau *StravaActivityUpdate) SetNillableStravaActivityID(i *int64) *StravaActivityUpdate {
 	if i != nil {
-		sau.SetStravaAccountID(*i)
+		sau.SetStravaActivityID(*i)
 	}
 	return sau
 }
 
-// AddStravaAccountID adds i to the "strava_account_id" field.
-func (sau *StravaActivityUpdate) AddStravaAccountID(i int64) *StravaActivityUpdate {
-	sau.mutation.AddStravaAccountID(i)
+// AddStravaActivityID adds i to the "strava_activity_id" field.
+func (sau *StravaActivityUpdate) AddStravaActivityID(i int64) *StravaActivityUpdate {
+	sau.mutation.AddStravaActivityID(i)
 	return sau
 }
 
@@ -213,23 +213,23 @@ func (sau *StravaActivityUpdate) AddElapsedTime(i int32) *StravaActivityUpdate {
 }
 
 // SetTotalElevationGain sets the "total_elevation_gain" field.
-func (sau *StravaActivityUpdate) SetTotalElevationGain(i int32) *StravaActivityUpdate {
+func (sau *StravaActivityUpdate) SetTotalElevationGain(f float64) *StravaActivityUpdate {
 	sau.mutation.ResetTotalElevationGain()
-	sau.mutation.SetTotalElevationGain(i)
+	sau.mutation.SetTotalElevationGain(f)
 	return sau
 }
 
 // SetNillableTotalElevationGain sets the "total_elevation_gain" field if the given value is not nil.
-func (sau *StravaActivityUpdate) SetNillableTotalElevationGain(i *int32) *StravaActivityUpdate {
-	if i != nil {
-		sau.SetTotalElevationGain(*i)
+func (sau *StravaActivityUpdate) SetNillableTotalElevationGain(f *float64) *StravaActivityUpdate {
+	if f != nil {
+		sau.SetTotalElevationGain(*f)
 	}
 	return sau
 }
 
-// AddTotalElevationGain adds i to the "total_elevation_gain" field.
-func (sau *StravaActivityUpdate) AddTotalElevationGain(i int32) *StravaActivityUpdate {
-	sau.mutation.AddTotalElevationGain(i)
+// AddTotalElevationGain adds f to the "total_elevation_gain" field.
+func (sau *StravaActivityUpdate) AddTotalElevationGain(f float64) *StravaActivityUpdate {
+	sau.mutation.AddTotalElevationGain(f)
 	return sau
 }
 
@@ -354,11 +354,11 @@ func (sau *StravaActivityUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 		}
 	}
-	if value, ok := sau.mutation.StravaAccountID(); ok {
-		_spec.SetField(stravaactivity.FieldStravaAccountID, field.TypeInt64, value)
+	if value, ok := sau.mutation.StravaActivityID(); ok {
+		_spec.SetField(stravaactivity.FieldStravaActivityID, field.TypeInt64, value)
 	}
-	if value, ok := sau.mutation.AddedStravaAccountID(); ok {
-		_spec.AddField(stravaactivity.FieldStravaAccountID, field.TypeInt64, value)
+	if value, ok := sau.mutation.AddedStravaActivityID(); ok {
+		_spec.AddField(stravaactivity.FieldStravaActivityID, field.TypeInt64, value)
 	}
 	if value, ok := sau.mutation.AthleteID(); ok {
 		_spec.SetField(stravaactivity.FieldAthleteID, field.TypeInt64, value)
@@ -400,10 +400,10 @@ func (sau *StravaActivityUpdate) sqlSave(ctx context.Context) (n int, err error)
 		_spec.AddField(stravaactivity.FieldElapsedTime, field.TypeInt32, value)
 	}
 	if value, ok := sau.mutation.TotalElevationGain(); ok {
-		_spec.SetField(stravaactivity.FieldTotalElevationGain, field.TypeInt32, value)
+		_spec.SetField(stravaactivity.FieldTotalElevationGain, field.TypeFloat64, value)
 	}
 	if value, ok := sau.mutation.AddedTotalElevationGain(); ok {
-		_spec.AddField(stravaactivity.FieldTotalElevationGain, field.TypeInt32, value)
+		_spec.AddField(stravaactivity.FieldTotalElevationGain, field.TypeFloat64, value)
 	}
 	if value, ok := sau.mutation.AverageSpeed(); ok {
 		_spec.SetField(stravaactivity.FieldAverageSpeed, field.TypeFloat64, value)
@@ -466,24 +466,24 @@ type StravaActivityUpdateOne struct {
 	mutation *StravaActivityMutation
 }
 
-// SetStravaAccountID sets the "strava_account_id" field.
-func (sauo *StravaActivityUpdateOne) SetStravaAccountID(i int64) *StravaActivityUpdateOne {
-	sauo.mutation.ResetStravaAccountID()
-	sauo.mutation.SetStravaAccountID(i)
+// SetStravaActivityID sets the "strava_activity_id" field.
+func (sauo *StravaActivityUpdateOne) SetStravaActivityID(i int64) *StravaActivityUpdateOne {
+	sauo.mutation.ResetStravaActivityID()
+	sauo.mutation.SetStravaActivityID(i)
 	return sauo
 }
 
-// SetNillableStravaAccountID sets the "strava_account_id" field if the given value is not nil.
-func (sauo *StravaActivityUpdateOne) SetNillableStravaAccountID(i *int64) *StravaActivityUpdateOne {
+// SetNillableStravaActivityID sets the "strava_activity_id" field if the given value is not nil.
+func (sauo *StravaActivityUpdateOne) SetNillableStravaActivityID(i *int64) *StravaActivityUpdateOne {
 	if i != nil {
-		sauo.SetStravaAccountID(*i)
+		sauo.SetStravaActivityID(*i)
 	}
 	return sauo
 }
 
-// AddStravaAccountID adds i to the "strava_account_id" field.
-func (sauo *StravaActivityUpdateOne) AddStravaAccountID(i int64) *StravaActivityUpdateOne {
-	sauo.mutation.AddStravaAccountID(i)
+// AddStravaActivityID adds i to the "strava_activity_id" field.
+func (sauo *StravaActivityUpdateOne) AddStravaActivityID(i int64) *StravaActivityUpdateOne {
+	sauo.mutation.AddStravaActivityID(i)
 	return sauo
 }
 
@@ -649,23 +649,23 @@ func (sauo *StravaActivityUpdateOne) AddElapsedTime(i int32) *StravaActivityUpda
 }
 
 // SetTotalElevationGain sets the "total_elevation_gain" field.
-func (sauo *StravaActivityUpdateOne) SetTotalElevationGain(i int32) *StravaActivityUpdateOne {
+func (sauo *StravaActivityUpdateOne) SetTotalElevationGain(f float64) *StravaActivityUpdateOne {
 	sauo.mutation.ResetTotalElevationGain()
-	sauo.mutation.SetTotalElevationGain(i)
+	sauo.mutation.SetTotalElevationGain(f)
 	return sauo
 }
 
 // SetNillableTotalElevationGain sets the "total_elevation_gain" field if the given value is not nil.
-func (sauo *StravaActivityUpdateOne) SetNillableTotalElevationGain(i *int32) *StravaActivityUpdateOne {
-	if i != nil {
-		sauo.SetTotalElevationGain(*i)
+func (sauo *StravaActivityUpdateOne) SetNillableTotalElevationGain(f *float64) *StravaActivityUpdateOne {
+	if f != nil {
+		sauo.SetTotalElevationGain(*f)
 	}
 	return sauo
 }
 
-// AddTotalElevationGain adds i to the "total_elevation_gain" field.
-func (sauo *StravaActivityUpdateOne) AddTotalElevationGain(i int32) *StravaActivityUpdateOne {
-	sauo.mutation.AddTotalElevationGain(i)
+// AddTotalElevationGain adds f to the "total_elevation_gain" field.
+func (sauo *StravaActivityUpdateOne) AddTotalElevationGain(f float64) *StravaActivityUpdateOne {
+	sauo.mutation.AddTotalElevationGain(f)
 	return sauo
 }
 
@@ -820,11 +820,11 @@ func (sauo *StravaActivityUpdateOne) sqlSave(ctx context.Context) (_node *Strava
 			}
 		}
 	}
-	if value, ok := sauo.mutation.StravaAccountID(); ok {
-		_spec.SetField(stravaactivity.FieldStravaAccountID, field.TypeInt64, value)
+	if value, ok := sauo.mutation.StravaActivityID(); ok {
+		_spec.SetField(stravaactivity.FieldStravaActivityID, field.TypeInt64, value)
 	}
-	if value, ok := sauo.mutation.AddedStravaAccountID(); ok {
-		_spec.AddField(stravaactivity.FieldStravaAccountID, field.TypeInt64, value)
+	if value, ok := sauo.mutation.AddedStravaActivityID(); ok {
+		_spec.AddField(stravaactivity.FieldStravaActivityID, field.TypeInt64, value)
 	}
 	if value, ok := sauo.mutation.AthleteID(); ok {
 		_spec.SetField(stravaactivity.FieldAthleteID, field.TypeInt64, value)
@@ -866,10 +866,10 @@ func (sauo *StravaActivityUpdateOne) sqlSave(ctx context.Context) (_node *Strava
 		_spec.AddField(stravaactivity.FieldElapsedTime, field.TypeInt32, value)
 	}
 	if value, ok := sauo.mutation.TotalElevationGain(); ok {
-		_spec.SetField(stravaactivity.FieldTotalElevationGain, field.TypeInt32, value)
+		_spec.SetField(stravaactivity.FieldTotalElevationGain, field.TypeFloat64, value)
 	}
 	if value, ok := sauo.mutation.AddedTotalElevationGain(); ok {
-		_spec.AddField(stravaactivity.FieldTotalElevationGain, field.TypeInt32, value)
+		_spec.AddField(stravaactivity.FieldTotalElevationGain, field.TypeFloat64, value)
 	}
 	if value, ok := sauo.mutation.AverageSpeed(); ok {
 		_spec.SetField(stravaactivity.FieldAverageSpeed, field.TypeFloat64, value)

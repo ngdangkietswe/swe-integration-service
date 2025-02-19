@@ -15,8 +15,8 @@ const (
 	Label = "strava_activity"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldStravaAccountID holds the string denoting the strava_account_id field in the database.
-	FieldStravaAccountID = "strava_account_id"
+	// FieldStravaActivityID holds the string denoting the strava_activity_id field in the database.
+	FieldStravaActivityID = "strava_activity_id"
 	// FieldAthleteID holds the string denoting the athlete_id field in the database.
 	FieldAthleteID = "athlete_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -59,7 +59,7 @@ const (
 // Columns holds all SQL columns for stravaactivity fields.
 var Columns = []string{
 	FieldID,
-	FieldStravaAccountID,
+	FieldStravaActivityID,
 	FieldAthleteID,
 	FieldUserID,
 	FieldActivityName,
@@ -99,7 +99,7 @@ var (
 	// DefaultElapsedTime holds the default value on creation for the "elapsed_time" field.
 	DefaultElapsedTime int32
 	// DefaultTotalElevationGain holds the default value on creation for the "total_elevation_gain" field.
-	DefaultTotalElevationGain int32
+	DefaultTotalElevationGain float64
 	// DefaultAverageSpeed holds the default value on creation for the "average_speed" field.
 	DefaultAverageSpeed float64
 	// DefaultMaxSpeed holds the default value on creation for the "max_speed" field.
@@ -118,9 +118,9 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByStravaAccountID orders the results by the strava_account_id field.
-func ByStravaAccountID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStravaAccountID, opts...).ToFunc()
+// ByStravaActivityID orders the results by the strava_activity_id field.
+func ByStravaActivityID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStravaActivityID, opts...).ToFunc()
 }
 
 // ByAthleteID orders the results by the athlete_id field.

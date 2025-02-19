@@ -19,8 +19,8 @@ type StravaActivity struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// StravaAccountID holds the value of the "strava_account_id" field.
-	StravaAccountID int64 `json:"strava_account_id,omitempty"`
+	// StravaActivityID holds the value of the "strava_activity_id" field.
+	StravaActivityID int64 `json:"strava_activity_id,omitempty"`
 	// AthleteID holds the value of the "athlete_id" field.
 	AthleteID int64 `json:"athlete_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -40,7 +40,7 @@ type StravaActivity struct {
 	// ElapsedTime holds the value of the "elapsed_time" field.
 	ElapsedTime int32 `json:"elapsed_time,omitempty"`
 	// TotalElevationGain holds the value of the "total_elevation_gain" field.
-	TotalElevationGain int32 `json:"total_elevation_gain,omitempty"`
+	TotalElevationGain float64 `json:"total_elevation_gain,omitempty"`
 	// AverageSpeed holds the value of the "average_speed" field.
 	AverageSpeed float64 `json:"average_speed,omitempty"`
 	// MaxSpeed holds the value of the "max_speed" field.
@@ -78,9 +78,9 @@ func (*StravaActivity) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case stravaactivity.FieldDistance, stravaactivity.FieldAverageSpeed, stravaactivity.FieldMaxSpeed:
+		case stravaactivity.FieldDistance, stravaactivity.FieldTotalElevationGain, stravaactivity.FieldAverageSpeed, stravaactivity.FieldMaxSpeed:
 			values[i] = new(sql.NullFloat64)
-		case stravaactivity.FieldStravaAccountID, stravaactivity.FieldAthleteID, stravaactivity.FieldActivityType, stravaactivity.FieldMovingTime, stravaactivity.FieldElapsedTime, stravaactivity.FieldTotalElevationGain:
+		case stravaactivity.FieldStravaActivityID, stravaactivity.FieldAthleteID, stravaactivity.FieldActivityType, stravaactivity.FieldMovingTime, stravaactivity.FieldElapsedTime:
 			values[i] = new(sql.NullInt64)
 		case stravaactivity.FieldActivityName, stravaactivity.FieldActivityURL:
 			values[i] = new(sql.NullString)
@@ -109,11 +109,11 @@ func (sa *StravaActivity) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				sa.ID = *value
 			}
-		case stravaactivity.FieldStravaAccountID:
+		case stravaactivity.FieldStravaActivityID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field strava_account_id", values[i])
+				return fmt.Errorf("unexpected type %T for field strava_activity_id", values[i])
 			} else if value.Valid {
-				sa.StravaAccountID = value.Int64
+				sa.StravaActivityID = value.Int64
 			}
 		case stravaactivity.FieldAthleteID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -170,10 +170,10 @@ func (sa *StravaActivity) assignValues(columns []string, values []any) error {
 				sa.ElapsedTime = int32(value.Int64)
 			}
 		case stravaactivity.FieldTotalElevationGain:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field total_elevation_gain", values[i])
 			} else if value.Valid {
-				sa.TotalElevationGain = int32(value.Int64)
+				sa.TotalElevationGain = value.Float64
 			}
 		case stravaactivity.FieldAverageSpeed:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -234,8 +234,8 @@ func (sa *StravaActivity) String() string {
 	var builder strings.Builder
 	builder.WriteString("StravaActivity(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", sa.ID))
-	builder.WriteString("strava_account_id=")
-	builder.WriteString(fmt.Sprintf("%v", sa.StravaAccountID))
+	builder.WriteString("strava_activity_id=")
+	builder.WriteString(fmt.Sprintf("%v", sa.StravaActivityID))
 	builder.WriteString(", ")
 	builder.WriteString("athlete_id=")
 	builder.WriteString(fmt.Sprintf("%v", sa.AthleteID))

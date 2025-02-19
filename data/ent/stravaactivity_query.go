@@ -299,12 +299,12 @@ func (saq *StravaActivityQuery) WithCdcAuthUsers(opts ...func(*CdcAuthUsersQuery
 // Example:
 //
 //	var v []struct {
-//		StravaAccountID int64 `json:"strava_account_id,omitempty"`
+//		StravaActivityID int64 `json:"strava_activity_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.StravaActivity.Query().
-//		GroupBy(stravaactivity.FieldStravaAccountID).
+//		GroupBy(stravaactivity.FieldStravaActivityID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (saq *StravaActivityQuery) GroupBy(field string, fields ...string) *StravaActivityGroupBy {
@@ -322,11 +322,11 @@ func (saq *StravaActivityQuery) GroupBy(field string, fields ...string) *StravaA
 // Example:
 //
 //	var v []struct {
-//		StravaAccountID int64 `json:"strava_account_id,omitempty"`
+//		StravaActivityID int64 `json:"strava_activity_id,omitempty"`
 //	}
 //
 //	client.StravaActivity.Query().
-//		Select(stravaactivity.FieldStravaAccountID).
+//		Select(stravaactivity.FieldStravaActivityID).
 //		Scan(ctx, &v)
 func (saq *StravaActivityQuery) Select(fields ...string) *StravaActivitySelect {
 	saq.ctx.Fields = append(saq.ctx.Fields, fields...)

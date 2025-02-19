@@ -53,7 +53,7 @@ var (
 	// StravaActivityColumns holds the columns for the "strava_activity" table.
 	StravaActivityColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "strava_account_id", Type: field.TypeInt64},
+		{Name: "strava_activity_id", Type: field.TypeInt64},
 		{Name: "athlete_id", Type: field.TypeInt64},
 		{Name: "activity_name", Type: field.TypeString},
 		{Name: "activity_type", Type: field.TypeInt, Default: 0},
@@ -62,7 +62,7 @@ var (
 		{Name: "distance", Type: field.TypeFloat64, Default: 0},
 		{Name: "moving_time", Type: field.TypeInt32, Default: 0},
 		{Name: "elapsed_time", Type: field.TypeInt32, Default: 0},
-		{Name: "total_elevation_gain", Type: field.TypeInt32, Default: 0},
+		{Name: "total_elevation_gain", Type: field.TypeFloat64, Default: 0},
 		{Name: "average_speed", Type: field.TypeFloat64, Default: 0},
 		{Name: "max_speed", Type: field.TypeFloat64, Default: 0},
 		{Name: "created_at", Type: field.TypeTime},

@@ -22,9 +22,9 @@ type StravaActivityCreate struct {
 	hooks    []Hook
 }
 
-// SetStravaAccountID sets the "strava_account_id" field.
-func (sac *StravaActivityCreate) SetStravaAccountID(i int64) *StravaActivityCreate {
-	sac.mutation.SetStravaAccountID(i)
+// SetStravaActivityID sets the "strava_activity_id" field.
+func (sac *StravaActivityCreate) SetStravaActivityID(i int64) *StravaActivityCreate {
+	sac.mutation.SetStravaActivityID(i)
 	return sac
 }
 
@@ -115,15 +115,15 @@ func (sac *StravaActivityCreate) SetNillableElapsedTime(i *int32) *StravaActivit
 }
 
 // SetTotalElevationGain sets the "total_elevation_gain" field.
-func (sac *StravaActivityCreate) SetTotalElevationGain(i int32) *StravaActivityCreate {
-	sac.mutation.SetTotalElevationGain(i)
+func (sac *StravaActivityCreate) SetTotalElevationGain(f float64) *StravaActivityCreate {
+	sac.mutation.SetTotalElevationGain(f)
 	return sac
 }
 
 // SetNillableTotalElevationGain sets the "total_elevation_gain" field if the given value is not nil.
-func (sac *StravaActivityCreate) SetNillableTotalElevationGain(i *int32) *StravaActivityCreate {
-	if i != nil {
-		sac.SetTotalElevationGain(*i)
+func (sac *StravaActivityCreate) SetNillableTotalElevationGain(f *float64) *StravaActivityCreate {
+	if f != nil {
+		sac.SetTotalElevationGain(*f)
 	}
 	return sac
 }
@@ -270,8 +270,8 @@ func (sac *StravaActivityCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (sac *StravaActivityCreate) check() error {
-	if _, ok := sac.mutation.StravaAccountID(); !ok {
-		return &ValidationError{Name: "strava_account_id", err: errors.New(`ent: missing required field "StravaActivity.strava_account_id"`)}
+	if _, ok := sac.mutation.StravaActivityID(); !ok {
+		return &ValidationError{Name: "strava_activity_id", err: errors.New(`ent: missing required field "StravaActivity.strava_activity_id"`)}
 	}
 	if _, ok := sac.mutation.AthleteID(); !ok {
 		return &ValidationError{Name: "athlete_id", err: errors.New(`ent: missing required field "StravaActivity.athlete_id"`)}
@@ -360,9 +360,9 @@ func (sac *StravaActivityCreate) createSpec() (*StravaActivity, *sqlgraph.Create
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := sac.mutation.StravaAccountID(); ok {
-		_spec.SetField(stravaactivity.FieldStravaAccountID, field.TypeInt64, value)
-		_node.StravaAccountID = value
+	if value, ok := sac.mutation.StravaActivityID(); ok {
+		_spec.SetField(stravaactivity.FieldStravaActivityID, field.TypeInt64, value)
+		_node.StravaActivityID = value
 	}
 	if value, ok := sac.mutation.AthleteID(); ok {
 		_spec.SetField(stravaactivity.FieldAthleteID, field.TypeInt64, value)
@@ -397,7 +397,7 @@ func (sac *StravaActivityCreate) createSpec() (*StravaActivity, *sqlgraph.Create
 		_node.ElapsedTime = value
 	}
 	if value, ok := sac.mutation.TotalElevationGain(); ok {
-		_spec.SetField(stravaactivity.FieldTotalElevationGain, field.TypeInt32, value)
+		_spec.SetField(stravaactivity.FieldTotalElevationGain, field.TypeFloat64, value)
 		_node.TotalElevationGain = value
 	}
 	if value, ok := sac.mutation.AverageSpeed(); ok {

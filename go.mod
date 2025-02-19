@@ -11,7 +11,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250217035017-107264eeb506
-	github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250218163034-6fbf0efbe5ea
+	github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250219205737-ca5a2d0bbd72
+	github.com/samber/lo v1.47.0
 	go.uber.org/fx v1.23.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.68.0
@@ -42,7 +43,6 @@ require (
 	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/samber/lo v1.47.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect

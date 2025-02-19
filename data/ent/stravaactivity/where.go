@@ -56,9 +56,9 @@ func IDLTE(id uuid.UUID) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldLTE(FieldID, id))
 }
 
-// StravaAccountID applies equality check predicate on the "strava_account_id" field. It's identical to StravaAccountIDEQ.
-func StravaAccountID(v int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldEQ(FieldStravaAccountID, v))
+// StravaActivityID applies equality check predicate on the "strava_activity_id" field. It's identical to StravaActivityIDEQ.
+func StravaActivityID(v int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldEQ(FieldStravaActivityID, v))
 }
 
 // AthleteID applies equality check predicate on the "athlete_id" field. It's identical to AthleteIDEQ.
@@ -107,7 +107,7 @@ func ElapsedTime(v int32) predicate.StravaActivity {
 }
 
 // TotalElevationGain applies equality check predicate on the "total_elevation_gain" field. It's identical to TotalElevationGainEQ.
-func TotalElevationGain(v int32) predicate.StravaActivity {
+func TotalElevationGain(v float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldEQ(FieldTotalElevationGain, v))
 }
 
@@ -126,44 +126,44 @@ func CreatedAt(v time.Time) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldEQ(FieldCreatedAt, v))
 }
 
-// StravaAccountIDEQ applies the EQ predicate on the "strava_account_id" field.
-func StravaAccountIDEQ(v int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldEQ(FieldStravaAccountID, v))
+// StravaActivityIDEQ applies the EQ predicate on the "strava_activity_id" field.
+func StravaActivityIDEQ(v int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldEQ(FieldStravaActivityID, v))
 }
 
-// StravaAccountIDNEQ applies the NEQ predicate on the "strava_account_id" field.
-func StravaAccountIDNEQ(v int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldNEQ(FieldStravaAccountID, v))
+// StravaActivityIDNEQ applies the NEQ predicate on the "strava_activity_id" field.
+func StravaActivityIDNEQ(v int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldNEQ(FieldStravaActivityID, v))
 }
 
-// StravaAccountIDIn applies the In predicate on the "strava_account_id" field.
-func StravaAccountIDIn(vs ...int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldIn(FieldStravaAccountID, vs...))
+// StravaActivityIDIn applies the In predicate on the "strava_activity_id" field.
+func StravaActivityIDIn(vs ...int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldIn(FieldStravaActivityID, vs...))
 }
 
-// StravaAccountIDNotIn applies the NotIn predicate on the "strava_account_id" field.
-func StravaAccountIDNotIn(vs ...int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldNotIn(FieldStravaAccountID, vs...))
+// StravaActivityIDNotIn applies the NotIn predicate on the "strava_activity_id" field.
+func StravaActivityIDNotIn(vs ...int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldNotIn(FieldStravaActivityID, vs...))
 }
 
-// StravaAccountIDGT applies the GT predicate on the "strava_account_id" field.
-func StravaAccountIDGT(v int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldGT(FieldStravaAccountID, v))
+// StravaActivityIDGT applies the GT predicate on the "strava_activity_id" field.
+func StravaActivityIDGT(v int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldGT(FieldStravaActivityID, v))
 }
 
-// StravaAccountIDGTE applies the GTE predicate on the "strava_account_id" field.
-func StravaAccountIDGTE(v int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldGTE(FieldStravaAccountID, v))
+// StravaActivityIDGTE applies the GTE predicate on the "strava_activity_id" field.
+func StravaActivityIDGTE(v int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldGTE(FieldStravaActivityID, v))
 }
 
-// StravaAccountIDLT applies the LT predicate on the "strava_account_id" field.
-func StravaAccountIDLT(v int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldLT(FieldStravaAccountID, v))
+// StravaActivityIDLT applies the LT predicate on the "strava_activity_id" field.
+func StravaActivityIDLT(v int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldLT(FieldStravaActivityID, v))
 }
 
-// StravaAccountIDLTE applies the LTE predicate on the "strava_account_id" field.
-func StravaAccountIDLTE(v int64) predicate.StravaActivity {
-	return predicate.StravaActivity(sql.FieldLTE(FieldStravaAccountID, v))
+// StravaActivityIDLTE applies the LTE predicate on the "strava_activity_id" field.
+func StravaActivityIDLTE(v int64) predicate.StravaActivity {
+	return predicate.StravaActivity(sql.FieldLTE(FieldStravaActivityID, v))
 }
 
 // AthleteIDEQ applies the EQ predicate on the "athlete_id" field.
@@ -557,42 +557,42 @@ func ElapsedTimeLTE(v int32) predicate.StravaActivity {
 }
 
 // TotalElevationGainEQ applies the EQ predicate on the "total_elevation_gain" field.
-func TotalElevationGainEQ(v int32) predicate.StravaActivity {
+func TotalElevationGainEQ(v float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldEQ(FieldTotalElevationGain, v))
 }
 
 // TotalElevationGainNEQ applies the NEQ predicate on the "total_elevation_gain" field.
-func TotalElevationGainNEQ(v int32) predicate.StravaActivity {
+func TotalElevationGainNEQ(v float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldNEQ(FieldTotalElevationGain, v))
 }
 
 // TotalElevationGainIn applies the In predicate on the "total_elevation_gain" field.
-func TotalElevationGainIn(vs ...int32) predicate.StravaActivity {
+func TotalElevationGainIn(vs ...float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldIn(FieldTotalElevationGain, vs...))
 }
 
 // TotalElevationGainNotIn applies the NotIn predicate on the "total_elevation_gain" field.
-func TotalElevationGainNotIn(vs ...int32) predicate.StravaActivity {
+func TotalElevationGainNotIn(vs ...float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldNotIn(FieldTotalElevationGain, vs...))
 }
 
 // TotalElevationGainGT applies the GT predicate on the "total_elevation_gain" field.
-func TotalElevationGainGT(v int32) predicate.StravaActivity {
+func TotalElevationGainGT(v float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldGT(FieldTotalElevationGain, v))
 }
 
 // TotalElevationGainGTE applies the GTE predicate on the "total_elevation_gain" field.
-func TotalElevationGainGTE(v int32) predicate.StravaActivity {
+func TotalElevationGainGTE(v float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldGTE(FieldTotalElevationGain, v))
 }
 
 // TotalElevationGainLT applies the LT predicate on the "total_elevation_gain" field.
-func TotalElevationGainLT(v int32) predicate.StravaActivity {
+func TotalElevationGainLT(v float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldLT(FieldTotalElevationGain, v))
 }
 
 // TotalElevationGainLTE applies the LTE predicate on the "total_elevation_gain" field.
-func TotalElevationGainLTE(v int32) predicate.StravaActivity {
+func TotalElevationGainLTE(v float64) predicate.StravaActivity {
 	return predicate.StravaActivity(sql.FieldLTE(FieldTotalElevationGain, v))
 }
 

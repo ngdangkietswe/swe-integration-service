@@ -121,7 +121,7 @@ func init() {
 	// stravaactivityDescTotalElevationGain is the schema descriptor for total_elevation_gain field.
 	stravaactivityDescTotalElevationGain := stravaactivityFields[11].Descriptor()
 	// stravaactivity.DefaultTotalElevationGain holds the default value on creation for the total_elevation_gain field.
-	stravaactivity.DefaultTotalElevationGain = stravaactivityDescTotalElevationGain.Default.(int32)
+	stravaactivity.DefaultTotalElevationGain = stravaactivityDescTotalElevationGain.Default.(float64)
 	// stravaactivityDescAverageSpeed is the schema descriptor for average_speed field.
 	stravaactivityDescAverageSpeed := stravaactivityFields[12].Descriptor()
 	// stravaactivity.DefaultAverageSpeed holds the default value on creation for the average_speed field.
