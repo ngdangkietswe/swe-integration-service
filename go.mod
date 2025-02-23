@@ -10,8 +10,8 @@ require (
 	github.com/gofiber/fiber/v3 v3.0.0-beta.4
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
-	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250217035017-107264eeb506
-	github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250219205737-ca5a2d0bbd72
+	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250223100613-fe86e65af93d
+	github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250223061722-d93517b624ad
 	github.com/samber/lo v1.47.0
 	go.uber.org/fx v1.23.0
 	go.uber.org/zap v1.27.0
@@ -65,7 +65,7 @@ require (
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241021214115-324edc3d5d38 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241021214115-324edc3d5d38 // indirect
-	google.golang.org/protobuf v1.35.2 // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

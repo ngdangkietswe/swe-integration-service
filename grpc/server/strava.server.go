@@ -37,3 +37,18 @@ func (s *StravaGrpcServer) SyncStravaActivities(ctx context.Context, req *common
 func (s *StravaGrpcServer) GetStravaActivities(ctx context.Context, req *integration.GetStravaActivitiesReq) (*integration.GetStravaActivitiesResp, error) {
 	return s.stravaSvc.GetStravaActivities(ctx, req)
 }
+
+// RemoveStravaAccount is a function that implements the RemoveStravaAccount method of the StravaServiceServer interface
+func (s *StravaGrpcServer) RemoveStravaAccount(ctx context.Context, req *common.EmptyReq) (*common.EmptyResp, error) {
+	return s.stravaSvc.RemoveStravaAccount(ctx, req)
+}
+
+// RemoveStravaActivity is a function that implements the RemoveStravaActivity method of the StravaServiceServer interface
+func (s *StravaGrpcServer) RemoveStravaActivity(ctx context.Context, req *common.IdReq) (*common.EmptyResp, error) {
+	return s.stravaSvc.RemoveStravaActivity(ctx, req)
+}
+
+// BulkRemoveStravaActivities is a function that implements the BulkRemoveStravaActivities method of the StravaServiceServer interface
+func (s *StravaGrpcServer) BulkRemoveStravaActivities(ctx context.Context, req *common.IdsReq) (*common.EmptyResp, error) {
+	return s.stravaSvc.BulkRemoveStravaActivities(ctx, req)
+}

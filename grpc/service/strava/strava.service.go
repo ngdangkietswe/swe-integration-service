@@ -2,20 +2,23 @@ package strava
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
+	"github.com/ngdangkietswe/swe-go-common-shared/config"
 	grpcutil "github.com/ngdangkietswe/swe-go-common-shared/grpc/util"
 	"github.com/ngdangkietswe/swe-go-common-shared/logger"
+	"github.com/ngdangkietswe/swe-go-common-shared/util"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent"
 	stravarepo "github.com/ngdangkietswe/swe-integration-service/data/repository/strava"
 	"github.com/ngdangkietswe/swe-integration-service/grpc/mapper"
-	"github.com/ngdangkietswe/swe-integration-service/grpc/utils"
 	stravavalidator "github.com/ngdangkietswe/swe-integration-service/grpc/validator/strava"
 	"github.com/ngdangkietswe/swe-protobuf-shared/generated/common"
 	"github.com/ngdangkietswe/swe-protobuf-shared/generated/integration"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
+	"time"
 )
 
 type stravaService struct {
@@ -25,8 +28,9 @@ type stravaService struct {
 }
 
 const (
-	GetAthleteActivitiesEndpoint = "https://www.strava.com/api/v3/athlete/activities"
-	MaxPerPage                   = 100
+	GetAthleteActivitiesEndpoint      = "https://www.strava.com/api/v3/athlete/activities"
+	RefreshExpiredAccessTokenEndpoint = "https://www.strava.com/api/v3/oauth/token"
+	MaxPerPage                        = 100
 )
 
 // SyncStravaActivities is a function that syncs Strava activities with the user's account.
@@ -47,13 +51,24 @@ func (s stravaService) SyncStravaActivities(ctx context.Context, req *common.Emp
 	var stravaActivities, newStravaActivities []map[string]interface{}
 	page := 1
 	client := resty.New()
+	accessToken := stravaAccount.AccessToken
+
+	// Check if access token has expired. If so, refresh the access token.
+	if stravaAccount.ExpiresAt.Before(time.Now()) {
+		s.logger.Info("Access token of Strava account has expired, refreshing access token...")
+
+		accessToken = s.refreshExpiredAccessTokenOfStravaAccount(ctx, stravaAccount)
+		if accessToken == "" {
+			return nil, errors.New("failed to refresh access token")
+		}
+	}
 
 	s.logger.Info("Getting Strava activities from Strava API endpoint", zap.String("endpoint", GetAthleteActivitiesEndpoint))
 
 	for {
 		var pageStravaActivities []map[string]interface{}
 		_, err = client.R().
-			SetAuthToken(stravaAccount.AccessToken).
+			SetAuthToken(accessToken).
 			SetResult(&pageStravaActivities).
 			Get(fmt.Sprintf("%s?per_page=%d&page=%d", GetAthleteActivitiesEndpoint, MaxPerPage, page))
 		if err != nil {
@@ -99,9 +114,42 @@ func (s stravaService) SyncStravaActivities(ctx context.Context, req *common.Emp
 	}, nil
 }
 
+// refreshExpiredAccessTokenOfStravaAccount is a function that refreshes the expired access token of a Strava account.
+func (s stravaService) refreshExpiredAccessTokenOfStravaAccount(ctx context.Context, stravaAccount *ent.StravaAccount) string /*new_access_token*/ {
+	var tokenResp map[string]interface{}
+	client := resty.New()
+
+	_, err := client.R().
+		SetFormData(map[string]string{
+			"client_id":     config.GetString("STRAVA_CLIENT_ID", ""),
+			"client_secret": config.GetString("STRAVA_CLIENT_SECRET", ""),
+			"grant_type":    "refresh_token",
+			"refresh_token": stravaAccount.RefreshToken,
+		}).
+		SetResult(&tokenResp).
+		Post(RefreshExpiredAccessTokenEndpoint)
+
+	if err != nil {
+		s.logger.Error("Failed to refresh expired access token of Strava account", zap.String("error", err.Error()))
+		return ""
+	}
+
+	newAccessToken := tokenResp["access_token"].(string)
+
+	s.logger.Info("Successfully refreshed expired access token of Strava account", zap.String("new_access_token", newAccessToken))
+
+	err = s.stravaRepo.UpdateTokenStravaAccount(ctx, stravaAccount.ID, newAccessToken, tokenResp["refresh_token"].(string), int64(tokenResp["expires_at"].(float64)))
+	if err != nil {
+		s.logger.Error("Failed to update access token of Strava account", zap.String("error", err.Error()))
+		return ""
+	}
+
+	return newAccessToken
+}
+
 // GetStravaActivities is a function that gets Strava activities of the user.
 func (s stravaService) GetStravaActivities(ctx context.Context, req *integration.GetStravaActivitiesReq) (*integration.GetStravaActivitiesResp, error) {
-	normalizePageable := utils.NormalizePageable(req.Pageable)
+	normalizePageable := util.NormalizePageable(req.Pageable)
 
 	userId := uuid.MustParse(grpcutil.GetGrpcPrincipal(ctx).UserId)
 	stravaActivities, count, err := s.stravaRepo.GetListStravaActivities(ctx, req, userId, normalizePageable)
@@ -114,7 +162,7 @@ func (s stravaService) GetStravaActivities(ctx context.Context, req *integration
 		Success: true,
 		Resp: &integration.GetStravaActivitiesResp_Data_{
 			Data: &integration.GetStravaActivitiesResp_Data{
-				PageMetaData: utils.AsPageMetaData(normalizePageable, count),
+				PageMetaData: util.AsPageMetaData(normalizePageable, count),
 				Activities:   mapper.AsListStravaActivity(stravaActivities),
 			},
 		},
@@ -160,6 +208,72 @@ func (s stravaService) GetStravaAccount(ctx context.Context, req *integration.Ge
 		Resp: &integration.GetStravaAccountResp_StravaAccount{
 			StravaAccount: mapper.AsMonoStravaAccount(stravaAccount),
 		},
+	}, nil
+}
+
+// RemoveStravaAccount is a function that removes the Strava account of the user.
+func (s stravaService) RemoveStravaAccount(ctx context.Context, req *common.EmptyReq) (*common.EmptyResp, error) {
+	userId := uuid.MustParse(grpcutil.GetGrpcPrincipal(ctx).UserId)
+
+	stravaAccount, err := s.stravaRepo.GetStravaAccountByUserId(ctx, userId)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			s.logger.Error("Strava account not found", zap.String("error", err.Error()))
+			return nil, err
+		} else {
+			s.logger.Error("Failed to get Strava account", zap.String("error", err.Error()))
+			return nil, err
+		}
+	}
+
+	err = s.stravaRepo.RemoveStravaAccountByUserId(ctx, stravaAccount.ID)
+	if err != nil {
+		s.logger.Error("Failed to remove Strava account", zap.String("error", err.Error()))
+		return nil, err
+	}
+
+	return &common.EmptyResp{}, nil
+}
+
+// RemoveStravaActivity is a function that removes a Strava activity.
+func (s stravaService) RemoveStravaActivity(ctx context.Context, req *common.IdReq) (*common.EmptyResp, error) {
+	exists, err := s.stravaRepo.ExistsStravaActivityById(ctx, uuid.MustParse(req.Id))
+	if err != nil {
+		s.logger.Error("Failed to check if Strava activity exists", zap.String("error", err.Error()))
+		return nil, err
+	} else if !exists {
+		return nil, errors.New("strava activity not found")
+	}
+
+	err = s.stravaRepo.DeleteStravaActivityById(ctx, uuid.MustParse(req.Id))
+	if err != nil {
+		s.logger.Error("Failed to delete Strava activity", zap.String("error", err.Error()))
+		return nil, err
+	}
+
+	return &common.EmptyResp{
+		Success: true,
+	}, nil
+}
+
+// BulkRemoveStravaActivities is a function that bulk removes Strava activities.
+func (s stravaService) BulkRemoveStravaActivities(ctx context.Context, req *common.IdsReq) (*common.EmptyResp, error) {
+	existsAll, err := s.stravaRepo.ExistsAllStravaActivitiesByIdIn(ctx, util.Convert2UUID(req.Ids))
+	if err != nil {
+		s.logger.Error("Failed to check if all Strava activities exist", zap.String("error", err.Error()))
+		return nil, err
+	} else if !existsAll {
+		return nil, errors.New("strava activities not found")
+	}
+
+	err = s.stravaRepo.DeleteStravaActivitiesByIdIn(ctx, util.Convert2UUID(req.Ids))
+	if err != nil {
+		s.logger.Error("Failed to delete Strava activities", zap.String("error", err.Error()))
+		return nil, err
+	}
+
+	return &common.EmptyResp{
+		Success: true,
 	}, nil
 }
 

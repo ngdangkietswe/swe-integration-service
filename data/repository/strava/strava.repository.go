@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	grpcutil "github.com/ngdangkietswe/swe-go-common-shared/grpc/util"
+	"github.com/ngdangkietswe/swe-go-common-shared/util"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaaccount"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent/stravaactivity"
@@ -16,6 +18,65 @@ import (
 
 type stravaRepository struct {
 	entClient *ent.Client
+}
+
+// UpdateTokenStravaAccount is a function that updates the token of a Strava account.
+func (s stravaRepository) UpdateTokenStravaAccount(ctx context.Context, id uuid.UUID, accessToken string, refreshToken string, expiresAt int64) error {
+	return s.entClient.StravaAccount.UpdateOneID(id).
+		SetAccessToken(accessToken).
+		SetRefreshToken(refreshToken).
+		SetExpiresAt(time.Unix(expiresAt, 0).UTC()).
+		SetUpdatedAt(time.Now()).
+		Exec(ctx)
+}
+
+// DeleteStravaActivityById is a function that deletes a Strava activity by ID.
+func (s stravaRepository) DeleteStravaActivityById(ctx context.Context, id uuid.UUID) error {
+	userId := uuid.MustParse(grpcutil.GetGrpcPrincipal(ctx).UserId)
+	return s.entClient.StravaActivity.DeleteOneID(id).Where(stravaactivity.UserID(userId)).Exec(ctx)
+}
+
+// DeleteStravaActivitiesByIdIn is a function that deletes Strava activities by IDs.
+func (s stravaRepository) DeleteStravaActivitiesByIdIn(ctx context.Context, ids []uuid.UUID) error {
+	userId := uuid.MustParse(grpcutil.GetGrpcPrincipal(ctx).UserId)
+	_, err := s.entClient.StravaActivity.Delete().
+		Where(
+			stravaactivity.IDIn(ids...),
+			stravaactivity.UserID(userId)).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// ExistsAllStravaActivitiesByIdIn is a function that checks if all Strava activities exist by IDs.
+func (s stravaRepository) ExistsAllStravaActivitiesByIdIn(ctx context.Context, ids []uuid.UUID) (bool, error) {
+	count, err := s.entClient.StravaActivity.Query().Where(stravaactivity.IDIn(ids...)).Count(ctx)
+	if err != nil {
+		return false, err
+	}
+	return count == len(ids), nil
+}
+
+// ExistsStravaActivityById is a function that checks if a Strava activity exists by ID.
+func (s stravaRepository) ExistsStravaActivityById(ctx context.Context, id uuid.UUID) (bool, error) {
+	return s.entClient.StravaActivity.Query().Where(stravaactivity.ID(id)).Exist(ctx)
+}
+
+// GetStravaActivityById is a function that gets a Strava activity by ID.
+func (s stravaRepository) GetStravaActivityById(ctx context.Context, id uuid.UUID) (*ent.StravaActivity, error) {
+	return s.entClient.StravaActivity.Get(ctx, id)
+}
+
+// GetListStravaActivitiesByIdIn is a function that gets a list of Strava activities by IDs.
+func (s stravaRepository) GetListStravaActivitiesByIdIn(ctx context.Context, ids []uuid.UUID) ([]*ent.StravaActivity, error) {
+	return s.entClient.StravaActivity.Query().Where(stravaactivity.IDIn(ids...)).All(ctx)
+}
+
+// RemoveStravaAccountByUserId is a function that removes a Strava account by user ID.
+func (s stravaRepository) RemoveStravaAccountByUserId(ctx context.Context, stravaAccountId uuid.UUID) error {
+	return s.entClient.StravaAccount.DeleteOneID(stravaAccountId).Exec(ctx)
 }
 
 // SyncStravaActivities is a function that syncs Strava activities with the user's account.
@@ -57,14 +118,25 @@ func (s stravaRepository) GetListStravaActivitiesByUserId(ctx context.Context, u
 
 // GetListStravaActivities is a function that gets a list of Strava activities by user ID.
 func (s stravaRepository) GetListStravaActivities(ctx context.Context, req *integration.GetStravaActivitiesReq, userId uuid.UUID, pageable *common.Pageable) ([]*ent.StravaActivity, int64, error) {
-	entSAs := s.entClient.StravaActivity.Query().Where(stravaactivity.UserID(userId))
+	query := s.entClient.StravaActivity.Query().Where(stravaactivity.UserID(userId))
 
 	if req.Type != nil {
-		entSAs.Where(stravaactivity.ActivityType(int(req.GetType())))
+		query.Where(stravaactivity.ActivityType(int(req.GetType())))
 	}
 
-	count, err := entSAs.Count(ctx)
-	data, err := entSAs.Limit(int(pageable.Size)).Offset(int(utils.AsOffset(pageable.Page, pageable.Size))).All(ctx)
+	orderSpecifier := utils.AsOrderSpecifier(req.GetPageable().Sort, req.Pageable.Direction)
+
+	if pageable.UnPaged {
+		data, err := query.Order(orderSpecifier).All(ctx)
+		return data, int64(len(data)), err
+	}
+
+	count, err := query.Count(ctx)
+	data, err := query.
+		Order(orderSpecifier).
+		Limit(int(pageable.Size)).
+		Offset(int(util.AsOffset(pageable.Page, pageable.Size))).
+		All(ctx)
 	return data, int64(count), err
 }
 
@@ -80,7 +152,7 @@ func (s stravaRepository) SaveStravaAccount(ctx context.Context, req *integratio
 		SetAthleteID(req.Strava.AthleteId).
 		SetAccessToken(req.Strava.AccessToken).
 		SetRefreshToken(req.Strava.RefreshToken).
-		SetExpiresAt(time.UnixMilli(req.Strava.ExpiresAt)).
+		SetExpiresAt(time.Unix(req.Strava.ExpiresAt, 0).UTC()).
 		SetProfile(req.Strava.Profile).
 		SetUsername(req.Strava.Username).
 		SetFirstName(req.Strava.FirstName).
