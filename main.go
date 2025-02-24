@@ -7,6 +7,8 @@ import (
 	"github.com/ngdangkietswe/swe-go-common-shared/config"
 	"github.com/ngdangkietswe/swe-integration-service/data/repository"
 	"github.com/ngdangkietswe/swe-integration-service/grpc"
+	"github.com/ngdangkietswe/swe-integration-service/kafka"
+	"github.com/ngdangkietswe/swe-integration-service/kafka/consumer"
 	"github.com/ngdangkietswe/swe-integration-service/logger"
 	"go.uber.org/fx"
 	grpcserver "google.golang.org/grpc"
@@ -35,6 +37,10 @@ func main() {
 	app := fx.New(
 		logger.Module,
 		repository.Module,
+		kafka.Module,
+		fx.Invoke(func(c *consumer.CdcAuthUsersConsumer) {
+			go c.Consume()
+		}),
 		grpc.Module,
 		fx.Invoke(func(*grpcserver.Server) {}),
 	)

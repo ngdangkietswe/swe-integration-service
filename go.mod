@@ -10,7 +10,7 @@ require (
 	github.com/gofiber/fiber/v3 v3.0.0-beta.4
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
-	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250223100613-fe86e65af93d
+	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250223145806-6fff2da6ef30
 	github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250223061722-d93517b624ad
 	github.com/samber/lo v1.47.0
 	go.uber.org/fx v1.23.0
@@ -41,8 +41,10 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
