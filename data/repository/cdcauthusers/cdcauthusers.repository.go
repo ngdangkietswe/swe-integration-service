@@ -19,17 +19,18 @@ func (c cdcAuthUsersRepository) DeleteById(ctx context.Context, id uuid.UUID) er
 // UpsertByCdcEventMsg upserts a record by a CDC event message.
 func (c cdcAuthUsersRepository) UpsertByCdcEventMsg(ctx context.Context, cdcEventMsg *kafka.CdcEventMsg) error {
 	data := cdcEventMsg.After
-
 	cdcAuthUsersId := data["id"].(string)
-	if cdcAuthUsersId != "" {
+
+	// If the operation is CREATE, create a new record.
+	if cdcEventMsg.Op == kafka.CdcOperationCreate {
 		return c.entClient.CdcAuthUsers.Create().
-			SetID(uuid.MustParse(data["id"].(string))).
+			SetID(uuid.MustParse(cdcAuthUsersId)).
 			SetUsername(data["username"].(string)).
 			SetEmail(data["email"].(string)).
 			Exec(ctx)
 	}
 
-	return c.entClient.CdcAuthUsers.UpdateOneID(uuid.MustParse(data["id"].(string))).
+	return c.entClient.CdcAuthUsers.UpdateOneID(uuid.MustParse(cdcAuthUsersId)).
 		SetUsername(data["username"].(string)).
 		SetEmail(data["email"].(string)).
 		Exec(ctx)
