@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ngdangkietswe/swe-go-common-shared/kafka"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent"
+	"github.com/ngdangkietswe/swe-integration-service/data/ent/cdcauthusers"
 )
 
 type cdcAuthUsersRepository struct {
@@ -21,18 +22,12 @@ func (c cdcAuthUsersRepository) UpsertByCdcEventMsg(ctx context.Context, cdcEven
 	data := cdcEventMsg.After
 	cdcAuthUsersId := data["id"].(string)
 
-	// If the operation is CREATE, create a new record.
-	if cdcEventMsg.Op == kafka.CdcOperationCreate {
-		return c.entClient.CdcAuthUsers.Create().
-			SetID(uuid.MustParse(cdcAuthUsersId)).
-			SetUsername(data["username"].(string)).
-			SetEmail(data["email"].(string)).
-			Exec(ctx)
-	}
-
-	return c.entClient.CdcAuthUsers.UpdateOneID(uuid.MustParse(cdcAuthUsersId)).
+	return c.entClient.CdcAuthUsers.Create().
+		SetID(uuid.MustParse(cdcAuthUsersId)).
 		SetUsername(data["username"].(string)).
 		SetEmail(data["email"].(string)).
+		OnConflictColumns(cdcauthusers.FieldID).
+		UpdateNewValues().
 		Exec(ctx)
 }
 

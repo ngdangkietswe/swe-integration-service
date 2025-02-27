@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type CdcAuthUsersCreate struct {
 	config
 	mutation *CdcAuthUsersMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUsername sets the "username" field.
@@ -151,6 +154,7 @@ func (cauc *CdcAuthUsersCreate) createSpec() (*CdcAuthUsers, *sqlgraph.CreateSpe
 		_node = &CdcAuthUsers{config: cauc.config}
 		_spec = sqlgraph.NewCreateSpec(cdcauthusers.Table, sqlgraph.NewFieldSpec(cdcauthusers.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = cauc.conflict
 	if id, ok := cauc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -198,11 +202,199 @@ func (cauc *CdcAuthUsersCreate) createSpec() (*CdcAuthUsers, *sqlgraph.CreateSpe
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CdcAuthUsers.Create().
+//		SetUsername(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CdcAuthUsersUpsert) {
+//			SetUsername(v+v).
+//		}).
+//		Exec(ctx)
+func (cauc *CdcAuthUsersCreate) OnConflict(opts ...sql.ConflictOption) *CdcAuthUsersUpsertOne {
+	cauc.conflict = opts
+	return &CdcAuthUsersUpsertOne{
+		create: cauc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CdcAuthUsers.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (cauc *CdcAuthUsersCreate) OnConflictColumns(columns ...string) *CdcAuthUsersUpsertOne {
+	cauc.conflict = append(cauc.conflict, sql.ConflictColumns(columns...))
+	return &CdcAuthUsersUpsertOne{
+		create: cauc,
+	}
+}
+
+type (
+	// CdcAuthUsersUpsertOne is the builder for "upsert"-ing
+	//  one CdcAuthUsers node.
+	CdcAuthUsersUpsertOne struct {
+		create *CdcAuthUsersCreate
+	}
+
+	// CdcAuthUsersUpsert is the "OnConflict" setter.
+	CdcAuthUsersUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUsername sets the "username" field.
+func (u *CdcAuthUsersUpsert) SetUsername(v string) *CdcAuthUsersUpsert {
+	u.Set(cdcauthusers.FieldUsername, v)
+	return u
+}
+
+// UpdateUsername sets the "username" field to the value that was provided on create.
+func (u *CdcAuthUsersUpsert) UpdateUsername() *CdcAuthUsersUpsert {
+	u.SetExcluded(cdcauthusers.FieldUsername)
+	return u
+}
+
+// SetEmail sets the "email" field.
+func (u *CdcAuthUsersUpsert) SetEmail(v string) *CdcAuthUsersUpsert {
+	u.Set(cdcauthusers.FieldEmail, v)
+	return u
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *CdcAuthUsersUpsert) UpdateEmail() *CdcAuthUsersUpsert {
+	u.SetExcluded(cdcauthusers.FieldEmail)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.CdcAuthUsers.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(cdcauthusers.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CdcAuthUsersUpsertOne) UpdateNewValues() *CdcAuthUsersUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(cdcauthusers.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CdcAuthUsers.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *CdcAuthUsersUpsertOne) Ignore() *CdcAuthUsersUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CdcAuthUsersUpsertOne) DoNothing() *CdcAuthUsersUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CdcAuthUsersCreate.OnConflict
+// documentation for more info.
+func (u *CdcAuthUsersUpsertOne) Update(set func(*CdcAuthUsersUpsert)) *CdcAuthUsersUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CdcAuthUsersUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUsername sets the "username" field.
+func (u *CdcAuthUsersUpsertOne) SetUsername(v string) *CdcAuthUsersUpsertOne {
+	return u.Update(func(s *CdcAuthUsersUpsert) {
+		s.SetUsername(v)
+	})
+}
+
+// UpdateUsername sets the "username" field to the value that was provided on create.
+func (u *CdcAuthUsersUpsertOne) UpdateUsername() *CdcAuthUsersUpsertOne {
+	return u.Update(func(s *CdcAuthUsersUpsert) {
+		s.UpdateUsername()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *CdcAuthUsersUpsertOne) SetEmail(v string) *CdcAuthUsersUpsertOne {
+	return u.Update(func(s *CdcAuthUsersUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *CdcAuthUsersUpsertOne) UpdateEmail() *CdcAuthUsersUpsertOne {
+	return u.Update(func(s *CdcAuthUsersUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// Exec executes the query.
+func (u *CdcAuthUsersUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for CdcAuthUsersCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CdcAuthUsersUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *CdcAuthUsersUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: CdcAuthUsersUpsertOne.ID is not supported by MySQL driver. Use CdcAuthUsersUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *CdcAuthUsersUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // CdcAuthUsersCreateBulk is the builder for creating many CdcAuthUsers entities in bulk.
 type CdcAuthUsersCreateBulk struct {
 	config
 	err      error
 	builders []*CdcAuthUsersCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the CdcAuthUsers entities in the database.
@@ -231,6 +423,7 @@ func (caucb *CdcAuthUsersCreateBulk) Save(ctx context.Context) ([]*CdcAuthUsers,
 					_, err = mutators[i+1].Mutate(root, caucb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = caucb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, caucb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -277,6 +470,148 @@ func (caucb *CdcAuthUsersCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (caucb *CdcAuthUsersCreateBulk) ExecX(ctx context.Context) {
 	if err := caucb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CdcAuthUsers.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CdcAuthUsersUpsert) {
+//			SetUsername(v+v).
+//		}).
+//		Exec(ctx)
+func (caucb *CdcAuthUsersCreateBulk) OnConflict(opts ...sql.ConflictOption) *CdcAuthUsersUpsertBulk {
+	caucb.conflict = opts
+	return &CdcAuthUsersUpsertBulk{
+		create: caucb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CdcAuthUsers.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (caucb *CdcAuthUsersCreateBulk) OnConflictColumns(columns ...string) *CdcAuthUsersUpsertBulk {
+	caucb.conflict = append(caucb.conflict, sql.ConflictColumns(columns...))
+	return &CdcAuthUsersUpsertBulk{
+		create: caucb,
+	}
+}
+
+// CdcAuthUsersUpsertBulk is the builder for "upsert"-ing
+// a bulk of CdcAuthUsers nodes.
+type CdcAuthUsersUpsertBulk struct {
+	create *CdcAuthUsersCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.CdcAuthUsers.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(cdcauthusers.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CdcAuthUsersUpsertBulk) UpdateNewValues() *CdcAuthUsersUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(cdcauthusers.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CdcAuthUsers.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *CdcAuthUsersUpsertBulk) Ignore() *CdcAuthUsersUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CdcAuthUsersUpsertBulk) DoNothing() *CdcAuthUsersUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CdcAuthUsersCreateBulk.OnConflict
+// documentation for more info.
+func (u *CdcAuthUsersUpsertBulk) Update(set func(*CdcAuthUsersUpsert)) *CdcAuthUsersUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CdcAuthUsersUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUsername sets the "username" field.
+func (u *CdcAuthUsersUpsertBulk) SetUsername(v string) *CdcAuthUsersUpsertBulk {
+	return u.Update(func(s *CdcAuthUsersUpsert) {
+		s.SetUsername(v)
+	})
+}
+
+// UpdateUsername sets the "username" field to the value that was provided on create.
+func (u *CdcAuthUsersUpsertBulk) UpdateUsername() *CdcAuthUsersUpsertBulk {
+	return u.Update(func(s *CdcAuthUsersUpsert) {
+		s.UpdateUsername()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *CdcAuthUsersUpsertBulk) SetEmail(v string) *CdcAuthUsersUpsertBulk {
+	return u.Update(func(s *CdcAuthUsersUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *CdcAuthUsersUpsertBulk) UpdateEmail() *CdcAuthUsersUpsertBulk {
+	return u.Update(func(s *CdcAuthUsersUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// Exec executes the query.
+func (u *CdcAuthUsersUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the CdcAuthUsersCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for CdcAuthUsersCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CdcAuthUsersUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

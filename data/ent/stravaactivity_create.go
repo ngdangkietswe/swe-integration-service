@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type StravaActivityCreate struct {
 	config
 	mutation *StravaActivityMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetStravaActivityID sets the "strava_activity_id" field.
@@ -356,6 +359,7 @@ func (sac *StravaActivityCreate) createSpec() (*StravaActivity, *sqlgraph.Create
 		_node = &StravaActivity{config: sac.config}
 		_spec = sqlgraph.NewCreateSpec(stravaactivity.Table, sqlgraph.NewFieldSpec(stravaactivity.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = sac.conflict
 	if id, ok := sac.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -432,11 +436,605 @@ func (sac *StravaActivityCreate) createSpec() (*StravaActivity, *sqlgraph.Create
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.StravaActivity.Create().
+//		SetStravaActivityID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.StravaActivityUpsert) {
+//			SetStravaActivityID(v+v).
+//		}).
+//		Exec(ctx)
+func (sac *StravaActivityCreate) OnConflict(opts ...sql.ConflictOption) *StravaActivityUpsertOne {
+	sac.conflict = opts
+	return &StravaActivityUpsertOne{
+		create: sac,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.StravaActivity.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (sac *StravaActivityCreate) OnConflictColumns(columns ...string) *StravaActivityUpsertOne {
+	sac.conflict = append(sac.conflict, sql.ConflictColumns(columns...))
+	return &StravaActivityUpsertOne{
+		create: sac,
+	}
+}
+
+type (
+	// StravaActivityUpsertOne is the builder for "upsert"-ing
+	//  one StravaActivity node.
+	StravaActivityUpsertOne struct {
+		create *StravaActivityCreate
+	}
+
+	// StravaActivityUpsert is the "OnConflict" setter.
+	StravaActivityUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetStravaActivityID sets the "strava_activity_id" field.
+func (u *StravaActivityUpsert) SetStravaActivityID(v int64) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldStravaActivityID, v)
+	return u
+}
+
+// UpdateStravaActivityID sets the "strava_activity_id" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateStravaActivityID() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldStravaActivityID)
+	return u
+}
+
+// AddStravaActivityID adds v to the "strava_activity_id" field.
+func (u *StravaActivityUpsert) AddStravaActivityID(v int64) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldStravaActivityID, v)
+	return u
+}
+
+// SetAthleteID sets the "athlete_id" field.
+func (u *StravaActivityUpsert) SetAthleteID(v int64) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldAthleteID, v)
+	return u
+}
+
+// UpdateAthleteID sets the "athlete_id" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateAthleteID() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldAthleteID)
+	return u
+}
+
+// AddAthleteID adds v to the "athlete_id" field.
+func (u *StravaActivityUpsert) AddAthleteID(v int64) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldAthleteID, v)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *StravaActivityUpsert) SetUserID(v uuid.UUID) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateUserID() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldUserID)
+	return u
+}
+
+// SetActivityName sets the "activity_name" field.
+func (u *StravaActivityUpsert) SetActivityName(v string) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldActivityName, v)
+	return u
+}
+
+// UpdateActivityName sets the "activity_name" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateActivityName() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldActivityName)
+	return u
+}
+
+// SetActivityType sets the "activity_type" field.
+func (u *StravaActivityUpsert) SetActivityType(v int) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldActivityType, v)
+	return u
+}
+
+// UpdateActivityType sets the "activity_type" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateActivityType() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldActivityType)
+	return u
+}
+
+// AddActivityType adds v to the "activity_type" field.
+func (u *StravaActivityUpsert) AddActivityType(v int) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldActivityType, v)
+	return u
+}
+
+// SetActivityURL sets the "activity_url" field.
+func (u *StravaActivityUpsert) SetActivityURL(v string) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldActivityURL, v)
+	return u
+}
+
+// UpdateActivityURL sets the "activity_url" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateActivityURL() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldActivityURL)
+	return u
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *StravaActivityUpsert) SetStartDate(v time.Time) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldStartDate, v)
+	return u
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateStartDate() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldStartDate)
+	return u
+}
+
+// SetDistance sets the "distance" field.
+func (u *StravaActivityUpsert) SetDistance(v float64) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldDistance, v)
+	return u
+}
+
+// UpdateDistance sets the "distance" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateDistance() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldDistance)
+	return u
+}
+
+// AddDistance adds v to the "distance" field.
+func (u *StravaActivityUpsert) AddDistance(v float64) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldDistance, v)
+	return u
+}
+
+// SetMovingTime sets the "moving_time" field.
+func (u *StravaActivityUpsert) SetMovingTime(v int32) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldMovingTime, v)
+	return u
+}
+
+// UpdateMovingTime sets the "moving_time" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateMovingTime() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldMovingTime)
+	return u
+}
+
+// AddMovingTime adds v to the "moving_time" field.
+func (u *StravaActivityUpsert) AddMovingTime(v int32) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldMovingTime, v)
+	return u
+}
+
+// SetElapsedTime sets the "elapsed_time" field.
+func (u *StravaActivityUpsert) SetElapsedTime(v int32) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldElapsedTime, v)
+	return u
+}
+
+// UpdateElapsedTime sets the "elapsed_time" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateElapsedTime() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldElapsedTime)
+	return u
+}
+
+// AddElapsedTime adds v to the "elapsed_time" field.
+func (u *StravaActivityUpsert) AddElapsedTime(v int32) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldElapsedTime, v)
+	return u
+}
+
+// SetTotalElevationGain sets the "total_elevation_gain" field.
+func (u *StravaActivityUpsert) SetTotalElevationGain(v float64) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldTotalElevationGain, v)
+	return u
+}
+
+// UpdateTotalElevationGain sets the "total_elevation_gain" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateTotalElevationGain() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldTotalElevationGain)
+	return u
+}
+
+// AddTotalElevationGain adds v to the "total_elevation_gain" field.
+func (u *StravaActivityUpsert) AddTotalElevationGain(v float64) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldTotalElevationGain, v)
+	return u
+}
+
+// SetAverageSpeed sets the "average_speed" field.
+func (u *StravaActivityUpsert) SetAverageSpeed(v float64) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldAverageSpeed, v)
+	return u
+}
+
+// UpdateAverageSpeed sets the "average_speed" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateAverageSpeed() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldAverageSpeed)
+	return u
+}
+
+// AddAverageSpeed adds v to the "average_speed" field.
+func (u *StravaActivityUpsert) AddAverageSpeed(v float64) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldAverageSpeed, v)
+	return u
+}
+
+// SetMaxSpeed sets the "max_speed" field.
+func (u *StravaActivityUpsert) SetMaxSpeed(v float64) *StravaActivityUpsert {
+	u.Set(stravaactivity.FieldMaxSpeed, v)
+	return u
+}
+
+// UpdateMaxSpeed sets the "max_speed" field to the value that was provided on create.
+func (u *StravaActivityUpsert) UpdateMaxSpeed() *StravaActivityUpsert {
+	u.SetExcluded(stravaactivity.FieldMaxSpeed)
+	return u
+}
+
+// AddMaxSpeed adds v to the "max_speed" field.
+func (u *StravaActivityUpsert) AddMaxSpeed(v float64) *StravaActivityUpsert {
+	u.Add(stravaactivity.FieldMaxSpeed, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.StravaActivity.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(stravaactivity.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *StravaActivityUpsertOne) UpdateNewValues() *StravaActivityUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(stravaactivity.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(stravaactivity.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.StravaActivity.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *StravaActivityUpsertOne) Ignore() *StravaActivityUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *StravaActivityUpsertOne) DoNothing() *StravaActivityUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the StravaActivityCreate.OnConflict
+// documentation for more info.
+func (u *StravaActivityUpsertOne) Update(set func(*StravaActivityUpsert)) *StravaActivityUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&StravaActivityUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetStravaActivityID sets the "strava_activity_id" field.
+func (u *StravaActivityUpsertOne) SetStravaActivityID(v int64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetStravaActivityID(v)
+	})
+}
+
+// AddStravaActivityID adds v to the "strava_activity_id" field.
+func (u *StravaActivityUpsertOne) AddStravaActivityID(v int64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddStravaActivityID(v)
+	})
+}
+
+// UpdateStravaActivityID sets the "strava_activity_id" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateStravaActivityID() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateStravaActivityID()
+	})
+}
+
+// SetAthleteID sets the "athlete_id" field.
+func (u *StravaActivityUpsertOne) SetAthleteID(v int64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetAthleteID(v)
+	})
+}
+
+// AddAthleteID adds v to the "athlete_id" field.
+func (u *StravaActivityUpsertOne) AddAthleteID(v int64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddAthleteID(v)
+	})
+}
+
+// UpdateAthleteID sets the "athlete_id" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateAthleteID() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateAthleteID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *StravaActivityUpsertOne) SetUserID(v uuid.UUID) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateUserID() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetActivityName sets the "activity_name" field.
+func (u *StravaActivityUpsertOne) SetActivityName(v string) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetActivityName(v)
+	})
+}
+
+// UpdateActivityName sets the "activity_name" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateActivityName() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateActivityName()
+	})
+}
+
+// SetActivityType sets the "activity_type" field.
+func (u *StravaActivityUpsertOne) SetActivityType(v int) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetActivityType(v)
+	})
+}
+
+// AddActivityType adds v to the "activity_type" field.
+func (u *StravaActivityUpsertOne) AddActivityType(v int) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddActivityType(v)
+	})
+}
+
+// UpdateActivityType sets the "activity_type" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateActivityType() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateActivityType()
+	})
+}
+
+// SetActivityURL sets the "activity_url" field.
+func (u *StravaActivityUpsertOne) SetActivityURL(v string) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetActivityURL(v)
+	})
+}
+
+// UpdateActivityURL sets the "activity_url" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateActivityURL() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateActivityURL()
+	})
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *StravaActivityUpsertOne) SetStartDate(v time.Time) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetStartDate(v)
+	})
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateStartDate() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateStartDate()
+	})
+}
+
+// SetDistance sets the "distance" field.
+func (u *StravaActivityUpsertOne) SetDistance(v float64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetDistance(v)
+	})
+}
+
+// AddDistance adds v to the "distance" field.
+func (u *StravaActivityUpsertOne) AddDistance(v float64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddDistance(v)
+	})
+}
+
+// UpdateDistance sets the "distance" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateDistance() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateDistance()
+	})
+}
+
+// SetMovingTime sets the "moving_time" field.
+func (u *StravaActivityUpsertOne) SetMovingTime(v int32) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetMovingTime(v)
+	})
+}
+
+// AddMovingTime adds v to the "moving_time" field.
+func (u *StravaActivityUpsertOne) AddMovingTime(v int32) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddMovingTime(v)
+	})
+}
+
+// UpdateMovingTime sets the "moving_time" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateMovingTime() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateMovingTime()
+	})
+}
+
+// SetElapsedTime sets the "elapsed_time" field.
+func (u *StravaActivityUpsertOne) SetElapsedTime(v int32) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetElapsedTime(v)
+	})
+}
+
+// AddElapsedTime adds v to the "elapsed_time" field.
+func (u *StravaActivityUpsertOne) AddElapsedTime(v int32) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddElapsedTime(v)
+	})
+}
+
+// UpdateElapsedTime sets the "elapsed_time" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateElapsedTime() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateElapsedTime()
+	})
+}
+
+// SetTotalElevationGain sets the "total_elevation_gain" field.
+func (u *StravaActivityUpsertOne) SetTotalElevationGain(v float64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetTotalElevationGain(v)
+	})
+}
+
+// AddTotalElevationGain adds v to the "total_elevation_gain" field.
+func (u *StravaActivityUpsertOne) AddTotalElevationGain(v float64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddTotalElevationGain(v)
+	})
+}
+
+// UpdateTotalElevationGain sets the "total_elevation_gain" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateTotalElevationGain() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateTotalElevationGain()
+	})
+}
+
+// SetAverageSpeed sets the "average_speed" field.
+func (u *StravaActivityUpsertOne) SetAverageSpeed(v float64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetAverageSpeed(v)
+	})
+}
+
+// AddAverageSpeed adds v to the "average_speed" field.
+func (u *StravaActivityUpsertOne) AddAverageSpeed(v float64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddAverageSpeed(v)
+	})
+}
+
+// UpdateAverageSpeed sets the "average_speed" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateAverageSpeed() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateAverageSpeed()
+	})
+}
+
+// SetMaxSpeed sets the "max_speed" field.
+func (u *StravaActivityUpsertOne) SetMaxSpeed(v float64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetMaxSpeed(v)
+	})
+}
+
+// AddMaxSpeed adds v to the "max_speed" field.
+func (u *StravaActivityUpsertOne) AddMaxSpeed(v float64) *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddMaxSpeed(v)
+	})
+}
+
+// UpdateMaxSpeed sets the "max_speed" field to the value that was provided on create.
+func (u *StravaActivityUpsertOne) UpdateMaxSpeed() *StravaActivityUpsertOne {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateMaxSpeed()
+	})
+}
+
+// Exec executes the query.
+func (u *StravaActivityUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for StravaActivityCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *StravaActivityUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *StravaActivityUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: StravaActivityUpsertOne.ID is not supported by MySQL driver. Use StravaActivityUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *StravaActivityUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // StravaActivityCreateBulk is the builder for creating many StravaActivity entities in bulk.
 type StravaActivityCreateBulk struct {
 	config
 	err      error
 	builders []*StravaActivityCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the StravaActivity entities in the database.
@@ -466,6 +1064,7 @@ func (sacb *StravaActivityCreateBulk) Save(ctx context.Context) ([]*StravaActivi
 					_, err = mutators[i+1].Mutate(root, sacb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = sacb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, sacb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -512,6 +1111,368 @@ func (sacb *StravaActivityCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (sacb *StravaActivityCreateBulk) ExecX(ctx context.Context) {
 	if err := sacb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.StravaActivity.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.StravaActivityUpsert) {
+//			SetStravaActivityID(v+v).
+//		}).
+//		Exec(ctx)
+func (sacb *StravaActivityCreateBulk) OnConflict(opts ...sql.ConflictOption) *StravaActivityUpsertBulk {
+	sacb.conflict = opts
+	return &StravaActivityUpsertBulk{
+		create: sacb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.StravaActivity.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (sacb *StravaActivityCreateBulk) OnConflictColumns(columns ...string) *StravaActivityUpsertBulk {
+	sacb.conflict = append(sacb.conflict, sql.ConflictColumns(columns...))
+	return &StravaActivityUpsertBulk{
+		create: sacb,
+	}
+}
+
+// StravaActivityUpsertBulk is the builder for "upsert"-ing
+// a bulk of StravaActivity nodes.
+type StravaActivityUpsertBulk struct {
+	create *StravaActivityCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.StravaActivity.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(stravaactivity.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *StravaActivityUpsertBulk) UpdateNewValues() *StravaActivityUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(stravaactivity.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(stravaactivity.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.StravaActivity.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *StravaActivityUpsertBulk) Ignore() *StravaActivityUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *StravaActivityUpsertBulk) DoNothing() *StravaActivityUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the StravaActivityCreateBulk.OnConflict
+// documentation for more info.
+func (u *StravaActivityUpsertBulk) Update(set func(*StravaActivityUpsert)) *StravaActivityUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&StravaActivityUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetStravaActivityID sets the "strava_activity_id" field.
+func (u *StravaActivityUpsertBulk) SetStravaActivityID(v int64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetStravaActivityID(v)
+	})
+}
+
+// AddStravaActivityID adds v to the "strava_activity_id" field.
+func (u *StravaActivityUpsertBulk) AddStravaActivityID(v int64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddStravaActivityID(v)
+	})
+}
+
+// UpdateStravaActivityID sets the "strava_activity_id" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateStravaActivityID() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateStravaActivityID()
+	})
+}
+
+// SetAthleteID sets the "athlete_id" field.
+func (u *StravaActivityUpsertBulk) SetAthleteID(v int64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetAthleteID(v)
+	})
+}
+
+// AddAthleteID adds v to the "athlete_id" field.
+func (u *StravaActivityUpsertBulk) AddAthleteID(v int64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddAthleteID(v)
+	})
+}
+
+// UpdateAthleteID sets the "athlete_id" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateAthleteID() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateAthleteID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *StravaActivityUpsertBulk) SetUserID(v uuid.UUID) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateUserID() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetActivityName sets the "activity_name" field.
+func (u *StravaActivityUpsertBulk) SetActivityName(v string) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetActivityName(v)
+	})
+}
+
+// UpdateActivityName sets the "activity_name" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateActivityName() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateActivityName()
+	})
+}
+
+// SetActivityType sets the "activity_type" field.
+func (u *StravaActivityUpsertBulk) SetActivityType(v int) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetActivityType(v)
+	})
+}
+
+// AddActivityType adds v to the "activity_type" field.
+func (u *StravaActivityUpsertBulk) AddActivityType(v int) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddActivityType(v)
+	})
+}
+
+// UpdateActivityType sets the "activity_type" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateActivityType() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateActivityType()
+	})
+}
+
+// SetActivityURL sets the "activity_url" field.
+func (u *StravaActivityUpsertBulk) SetActivityURL(v string) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetActivityURL(v)
+	})
+}
+
+// UpdateActivityURL sets the "activity_url" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateActivityURL() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateActivityURL()
+	})
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *StravaActivityUpsertBulk) SetStartDate(v time.Time) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetStartDate(v)
+	})
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateStartDate() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateStartDate()
+	})
+}
+
+// SetDistance sets the "distance" field.
+func (u *StravaActivityUpsertBulk) SetDistance(v float64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetDistance(v)
+	})
+}
+
+// AddDistance adds v to the "distance" field.
+func (u *StravaActivityUpsertBulk) AddDistance(v float64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddDistance(v)
+	})
+}
+
+// UpdateDistance sets the "distance" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateDistance() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateDistance()
+	})
+}
+
+// SetMovingTime sets the "moving_time" field.
+func (u *StravaActivityUpsertBulk) SetMovingTime(v int32) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetMovingTime(v)
+	})
+}
+
+// AddMovingTime adds v to the "moving_time" field.
+func (u *StravaActivityUpsertBulk) AddMovingTime(v int32) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddMovingTime(v)
+	})
+}
+
+// UpdateMovingTime sets the "moving_time" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateMovingTime() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateMovingTime()
+	})
+}
+
+// SetElapsedTime sets the "elapsed_time" field.
+func (u *StravaActivityUpsertBulk) SetElapsedTime(v int32) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetElapsedTime(v)
+	})
+}
+
+// AddElapsedTime adds v to the "elapsed_time" field.
+func (u *StravaActivityUpsertBulk) AddElapsedTime(v int32) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddElapsedTime(v)
+	})
+}
+
+// UpdateElapsedTime sets the "elapsed_time" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateElapsedTime() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateElapsedTime()
+	})
+}
+
+// SetTotalElevationGain sets the "total_elevation_gain" field.
+func (u *StravaActivityUpsertBulk) SetTotalElevationGain(v float64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetTotalElevationGain(v)
+	})
+}
+
+// AddTotalElevationGain adds v to the "total_elevation_gain" field.
+func (u *StravaActivityUpsertBulk) AddTotalElevationGain(v float64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddTotalElevationGain(v)
+	})
+}
+
+// UpdateTotalElevationGain sets the "total_elevation_gain" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateTotalElevationGain() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateTotalElevationGain()
+	})
+}
+
+// SetAverageSpeed sets the "average_speed" field.
+func (u *StravaActivityUpsertBulk) SetAverageSpeed(v float64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetAverageSpeed(v)
+	})
+}
+
+// AddAverageSpeed adds v to the "average_speed" field.
+func (u *StravaActivityUpsertBulk) AddAverageSpeed(v float64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddAverageSpeed(v)
+	})
+}
+
+// UpdateAverageSpeed sets the "average_speed" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateAverageSpeed() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateAverageSpeed()
+	})
+}
+
+// SetMaxSpeed sets the "max_speed" field.
+func (u *StravaActivityUpsertBulk) SetMaxSpeed(v float64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.SetMaxSpeed(v)
+	})
+}
+
+// AddMaxSpeed adds v to the "max_speed" field.
+func (u *StravaActivityUpsertBulk) AddMaxSpeed(v float64) *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.AddMaxSpeed(v)
+	})
+}
+
+// UpdateMaxSpeed sets the "max_speed" field to the value that was provided on create.
+func (u *StravaActivityUpsertBulk) UpdateMaxSpeed() *StravaActivityUpsertBulk {
+	return u.Update(func(s *StravaActivityUpsert) {
+		s.UpdateMaxSpeed()
+	})
+}
+
+// Exec executes the query.
+func (u *StravaActivityUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the StravaActivityCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for StravaActivityCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *StravaActivityUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
