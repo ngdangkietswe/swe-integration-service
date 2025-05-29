@@ -124,7 +124,7 @@ func (s stravaRepository) GetListStravaActivities(ctx context.Context, req *inte
 		query.Where(stravaactivity.ActivityType(int(req.GetType())))
 	}
 
-	orderSpecifier := utils.AsOrderSpecifier(req.GetPageable().Sort, req.Pageable.Direction)
+	orderSpecifier := utils.AsOrderSpecifier(pageable.Sort, pageable.Direction)
 
 	if pageable.UnPaged {
 		data, err := query.Order(orderSpecifier).All(ctx)
