@@ -11,6 +11,7 @@ import (
 	"github.com/ngdangkietswe/swe-go-common-shared/logger"
 	"github.com/ngdangkietswe/swe-go-common-shared/util"
 	"github.com/ngdangkietswe/swe-integration-service/data/ent"
+	"github.com/ngdangkietswe/swe-integration-service/data/repository"
 	stravarepo "github.com/ngdangkietswe/swe-integration-service/data/repository/strava"
 	"github.com/ngdangkietswe/swe-integration-service/grpc/mapper"
 	stravavalidator "github.com/ngdangkietswe/swe-integration-service/grpc/validator/strava"
@@ -22,6 +23,7 @@ import (
 )
 
 type stravaService struct {
+	client          *ent.Client
 	logger          *logger.Logger
 	stravaValidator stravavalidator.IStravaValidator
 	stravaRepo      stravarepo.IStravaRepository
@@ -102,8 +104,9 @@ func (s stravaService) SyncStravaActivities(ctx context.Context, req *common.Emp
 
 	if len(newStravaActivities) > 0 {
 		s.logger.Info("Syncing Strava activities...", zap.Int("count", len(newStravaActivities)))
-		err = s.stravaRepo.SyncStravaActivities(ctx, userId, stravaAccount.AthleteID, newStravaActivities)
-		if err != nil {
+		if err = repository.WithTx(ctx, s.client, s.logger, func(tx *ent.Tx) error {
+			return s.stravaRepo.SyncStravaActivities(ctx, tx, userId, stravaAccount.AthleteID, newStravaActivities)
+		}); err != nil {
 			s.logger.Error("Failed to sync Strava activities", zap.String("error", err.Error()))
 			return nil, err
 		}
@@ -138,9 +141,10 @@ func (s stravaService) refreshExpiredAccessTokenOfStravaAccount(ctx context.Cont
 
 	s.logger.Info("Successfully refreshed expired access token of Strava account", zap.String("new_access_token", newAccessToken))
 
-	err = s.stravaRepo.UpdateTokenStravaAccount(ctx, stravaAccount.ID, newAccessToken, tokenResp["refresh_token"].(string), int64(tokenResp["expires_at"].(float64)))
-	if err != nil {
-		s.logger.Error("Failed to update access token of Strava account", zap.String("error", err.Error()))
+	if err = repository.WithTx(ctx, s.client, s.logger, func(tx *ent.Tx) error {
+		return s.stravaRepo.UpdateTokenStravaAccount(ctx, tx, stravaAccount.ID, newAccessToken, tokenResp["refresh_token"].(string), int64(tokenResp["expires_at"].(float64)))
+	}); err != nil {
+		s.logger.Error("Failed to update Strava account with new access token", zap.String("error", err.Error()))
 		return ""
 	}
 
@@ -177,8 +181,9 @@ func (s stravaService) IntegrateStravaAccount(ctx context.Context, req *integrat
 		return nil, err
 	}
 
-	_, err := s.stravaRepo.SaveStravaAccount(ctx, req)
-	if err != nil {
+	if _, err := repository.WithTxResult(ctx, s.client, s.logger, func(tx *ent.Tx) (*ent.StravaAccount, error) {
+		return s.stravaRepo.SaveStravaAccount(ctx, tx, req)
+	}); err != nil {
 		s.logger.Error("Failed to save Strava account", zap.String("error", err.Error()))
 		return nil, err
 	}
@@ -226,8 +231,9 @@ func (s stravaService) RemoveStravaAccount(ctx context.Context, req *common.Empt
 		}
 	}
 
-	err = s.stravaRepo.RemoveStravaAccountByUserId(ctx, stravaAccount.ID)
-	if err != nil {
+	if err = repository.WithTx(ctx, s.client, s.logger, func(tx *ent.Tx) error {
+		return s.stravaRepo.RemoveStravaAccountByUserId(ctx, tx, stravaAccount.ID)
+	}); err != nil {
 		s.logger.Error("Failed to remove Strava account", zap.String("error", err.Error()))
 		return nil, err
 	}
@@ -245,8 +251,9 @@ func (s stravaService) RemoveStravaActivity(ctx context.Context, req *common.IdR
 		return nil, errors.New("strava activity not found")
 	}
 
-	err = s.stravaRepo.DeleteStravaActivityById(ctx, uuid.MustParse(req.Id))
-	if err != nil {
+	if err = repository.WithTx(ctx, s.client, s.logger, func(tx *ent.Tx) error {
+		return s.stravaRepo.DeleteStravaActivityById(ctx, tx, uuid.MustParse(req.Id))
+	}); err != nil {
 		s.logger.Error("Failed to delete Strava activity", zap.String("error", err.Error()))
 		return nil, err
 	}
@@ -266,8 +273,9 @@ func (s stravaService) BulkRemoveStravaActivities(ctx context.Context, req *comm
 		return nil, errors.New("strava activities not found")
 	}
 
-	err = s.stravaRepo.DeleteStravaActivitiesByIdIn(ctx, util.Convert2UUID(req.Ids))
-	if err != nil {
+	if err = repository.WithTx(ctx, s.client, s.logger, func(tx *ent.Tx) error {
+		return s.stravaRepo.DeleteStravaActivitiesByIdIn(ctx, tx, util.Convert2UUID(req.Ids))
+	}); err != nil {
 		s.logger.Error("Failed to delete Strava activities", zap.String("error", err.Error()))
 		return nil, err
 	}
@@ -278,10 +286,12 @@ func (s stravaService) BulkRemoveStravaActivities(ctx context.Context, req *comm
 }
 
 func NewStravaService(
+	client *ent.Client,
 	logger *logger.Logger,
 	stravavalidator stravavalidator.IStravaValidator,
 	stravaRepo stravarepo.IStravaRepository) IStravaService {
 	return &stravaService{
+		client:          client,
 		logger:          logger,
 		stravaValidator: stravavalidator,
 		stravaRepo:      stravaRepo,

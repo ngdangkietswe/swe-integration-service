@@ -75,8 +75,8 @@ github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 h1:DpOJ2HYzC
 github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7/go.mod h1:ZXFpozHsX6DPmq2I0TCekCxypsnAUbP2oI0UX1GXzOo=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
-github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250529150826-8744e669d5e7 h1:SVLn85cGtPwe09vrCXERHC59jrSH9fwayRZeo/CYSCM=
-github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250529150826-8744e669d5e7/go.mod h1:yYFUeVuBFOVRLP0aIBSsIs8BN9bQgWxz1mWD2qwqNTY=
+github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250529153341-4ccac738607e h1:0e5+7HutYTZnBYJDFu8GwQjyGofCidMLmc2vZvEARCg=
+github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250529153341-4ccac738607e/go.mod h1:yYFUeVuBFOVRLP0aIBSsIs8BN9bQgWxz1mWD2qwqNTY=
 github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250511083322-48ff091ec8c9 h1:f+Mab9vx9tQw5NmcFXwsy7dk2M0/10eokcwaMY7PzfE=
 github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250511083322-48ff091ec8c9/go.mod h1:BJM2Kr7cIUwRc8lpRIlIC1T4diAlfr8ryVOV+NT5A5U=
 github.com/pelletier/go-toml/v2 v2.2.2 h1:aYUidT7k73Pcl9nb2gScu7NSrKCSHIDE89b3+6Wq+LM=

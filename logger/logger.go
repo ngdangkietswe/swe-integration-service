@@ -1,14 +1,15 @@
 package logger
 
 import (
+	"github.com/ngdangkietswe/swe-go-common-shared/config"
 	"github.com/ngdangkietswe/swe-go-common-shared/logger"
 	"go.uber.org/fx"
 )
 
 func NewZapLogger() (*logger.Logger, error) {
 	instance, err := logger.NewLogger(
-		"swe-integration-service",
-		"local",
+		config.GetString("APP_NAME", "swe-integration"),
+		config.GetString("APP_ENV", "dev"),
 		"debug",
 		"",
 	)

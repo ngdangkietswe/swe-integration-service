@@ -21,8 +21,8 @@ type stravaRepository struct {
 }
 
 // UpdateTokenStravaAccount is a function that updates the token of a Strava account.
-func (s stravaRepository) UpdateTokenStravaAccount(ctx context.Context, id uuid.UUID, accessToken string, refreshToken string, expiresAt int64) error {
-	return s.entClient.StravaAccount.UpdateOneID(id).
+func (s stravaRepository) UpdateTokenStravaAccount(ctx context.Context, tx *ent.Tx, id uuid.UUID, accessToken string, refreshToken string, expiresAt int64) error {
+	return tx.StravaAccount.UpdateOneID(id).
 		SetAccessToken(accessToken).
 		SetRefreshToken(refreshToken).
 		SetExpiresAt(time.Unix(expiresAt, 0).UTC()).
@@ -31,15 +31,15 @@ func (s stravaRepository) UpdateTokenStravaAccount(ctx context.Context, id uuid.
 }
 
 // DeleteStravaActivityById is a function that deletes a Strava activity by ID.
-func (s stravaRepository) DeleteStravaActivityById(ctx context.Context, id uuid.UUID) error {
+func (s stravaRepository) DeleteStravaActivityById(ctx context.Context, tx *ent.Tx, id uuid.UUID) error {
 	userId := uuid.MustParse(grpcutil.GetGrpcPrincipal(ctx).UserId)
-	return s.entClient.StravaActivity.DeleteOneID(id).Where(stravaactivity.UserID(userId)).Exec(ctx)
+	return tx.StravaActivity.DeleteOneID(id).Where(stravaactivity.UserID(userId)).Exec(ctx)
 }
 
 // DeleteStravaActivitiesByIdIn is a function that deletes Strava activities by IDs.
-func (s stravaRepository) DeleteStravaActivitiesByIdIn(ctx context.Context, ids []uuid.UUID) error {
+func (s stravaRepository) DeleteStravaActivitiesByIdIn(ctx context.Context, tx *ent.Tx, ids []uuid.UUID) error {
 	userId := uuid.MustParse(grpcutil.GetGrpcPrincipal(ctx).UserId)
-	_, err := s.entClient.StravaActivity.Delete().
+	_, err := tx.StravaActivity.Delete().
 		Where(
 			stravaactivity.IDIn(ids...),
 			stravaactivity.UserID(userId)).
@@ -75,12 +75,12 @@ func (s stravaRepository) GetListStravaActivitiesByIdIn(ctx context.Context, ids
 }
 
 // RemoveStravaAccountByUserId is a function that removes a Strava account by user ID.
-func (s stravaRepository) RemoveStravaAccountByUserId(ctx context.Context, stravaAccountId uuid.UUID) error {
-	return s.entClient.StravaAccount.DeleteOneID(stravaAccountId).Exec(ctx)
+func (s stravaRepository) RemoveStravaAccountByUserId(ctx context.Context, tx *ent.Tx, stravaAccountId uuid.UUID) error {
+	return tx.StravaAccount.DeleteOneID(stravaAccountId).Exec(ctx)
 }
 
 // SyncStravaActivities is a function that syncs Strava activities with the user's account.
-func (s stravaRepository) SyncStravaActivities(ctx context.Context, userId uuid.UUID, athleteId int64, stravaActivities []map[string]interface{}) error {
+func (s stravaRepository) SyncStravaActivities(ctx context.Context, tx *ent.Tx, userId uuid.UUID, athleteId int64, stravaActivities []map[string]interface{}) error {
 	var stravaActivityCreates []*ent.StravaActivityCreate
 
 	lo.ForEach(stravaActivities, func(item map[string]interface{}, _ int) {
@@ -108,7 +108,7 @@ func (s stravaRepository) SyncStravaActivities(ctx context.Context, userId uuid.
 			SetMaxSpeed(item["max_speed"].(float64)))
 	})
 
-	return s.entClient.StravaActivity.CreateBulk(stravaActivityCreates...).Exec(ctx)
+	return tx.StravaActivity.CreateBulk(stravaActivityCreates...).Exec(ctx)
 }
 
 // GetListStravaActivitiesByUserId is a function that gets a list of Strava activities by user ID.
@@ -146,8 +146,8 @@ func (s stravaRepository) ExistsByUserIdAndAthleteId(ctx context.Context, userId
 }
 
 // SaveStravaAccount is a function that saves a Strava account
-func (s stravaRepository) SaveStravaAccount(ctx context.Context, req *integration.IntegrateStravaAccountReq) (*ent.StravaAccount, error) {
-	data, err := s.entClient.StravaAccount.Create().
+func (s stravaRepository) SaveStravaAccount(ctx context.Context, tx *ent.Tx, req *integration.IntegrateStravaAccountReq) (*ent.StravaAccount, error) {
+	data, err := tx.StravaAccount.Create().
 		SetUserID(uuid.MustParse(req.UserId)).
 		SetAthleteID(req.Strava.AthleteId).
 		SetAccessToken(req.Strava.AccessToken).

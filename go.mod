@@ -10,7 +10,7 @@ require (
 	github.com/gofiber/fiber/v3 v3.0.0-beta.4
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
-	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250529150826-8744e669d5e7
+	github.com/ngdangkietswe/swe-go-common-shared v0.0.0-20250529153341-4ccac738607e
 	github.com/ngdangkietswe/swe-protobuf-shared v0.0.0-20250511083322-48ff091ec8c9
 	github.com/samber/lo v1.47.0
 	github.com/segmentio/kafka-go v0.4.47
